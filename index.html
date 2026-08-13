@@ -3,639 +3,472 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>중3 사회 - 찬미샘의 인구 피라미드 시뮬레이터</title>
-    <!-- Tailwind CSS for styling -->
+    <title>영암중 1학년 하루한줄 글쓰기 영단어</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-            background-color: #f8fafc;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #1a202c; /* Tailwind gray-900 */
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
-        .bar-transition {
-            transition: width 0.25s ease-out, x 0.25s ease-out, fill 0.2s ease;
+        
+        .jeopardy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 1rem;
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
         }
-        /* Custom scrollbar for visual refinement */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
+
+        .alphabet-card {
+            background-color: #2b6cb0; /* Tailwind blue-600 */
+            color: #fbd38d; /* Tailwind orange-200 */
+            font-size: 2rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100px;
+            cursor: pointer;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s, background-color 0.2s;
+            text-transform: uppercase;
         }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
+
+        .alphabet-card:hover:not(.disabled) {
+            transform: scale(1.05);
+            background-color: #2c5282; /* Tailwind blue-800 */
+        }
+
+        .alphabet-card.disabled {
+            background-color: #4a5568; /* Tailwind gray-700 */
+            color: #a0aec0; /* Tailwind gray-400 */
+            cursor: not-allowed;
+            text-decoration: line-through;
+        }
+
+        /* 모달 스타일 */
+        #wordModal {
+            display: none;
+            position: fixed;
+            z-index: 50;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #2d3748; /* Tailwind gray-800 */
+            padding: 2.5rem;
+            border-radius: 1rem;
+            text-align: center;
+            position: relative;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            animation: popIn 0.3s ease-out forwards;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .word-display {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #63b3ed; /* Tailwind blue-300 */
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .word-meaning {
+            font-size: 1.25rem;
+            color: #e2e8f0; /* Tailwind gray-200 */
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
+            font-size: 2rem;
+            color: #a0aec0;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .close-btn:hover { color: white; }
+
+        /* 상태 관리 컨테이너 */
+        #statusContainer {
+            background-color: #2d3748;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            margin-top: 2rem;
+        }
+
+        /* 예문 빈칸 대체어 강조 스타일 */
+        .substitutable {
+            text-decoration: underline;
+            text-decoration-style: solid;
+            text-decoration-color: #fbbf24; /* Tailwind yellow-400 */
+            text-decoration-thickness: 3px;
+            text-underline-offset: 4px;
+            color: #fde047; /* Tailwind yellow-300 */
+            font-weight: 700;
         }
     </style>
 </head>
-<body class="text-slate-800 antialiased min-h-screen flex flex-col justify-between">
+<body class="p-4 md:p-8 relative">
 
-    <!-- Navigation / Header -->
-    <header class="bg-indigo-600 text-white shadow-md">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row justify-between items-center gap-2">
-            <div class="flex items-center space-x-3">
-                <div class="p-2 bg-indigo-500/50 rounded-lg">
-                    <i class="fa-solid fa-chart-column text-2xl text-yellow-300"></i>
-                </div>
-                <div>
-                    <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight">찬미샘의 인구 피라미드 시뮬레이터</h1>
-                    <p class="text-xs sm:text-sm text-indigo-200">중학교 3학년 사회 ② - Ⅷ. 사람이 모이는 곳, 인구 다원화 사회</p>
-                </div>
-            </div>
-            <div class="bg-indigo-700/60 text-xs px-3 py-1.5 rounded-full border border-indigo-400/30 flex items-center gap-1.5">
-                <i class="fa-solid fa-graduation-cap text-yellow-300"></i>
-                <span>수업 탐구 및 실습용</span>
-            </div>
-        </div>
+    <!-- 메인 화면으로 돌아가기 화살표 -->
+    <a href="/" title="메인 화면으로" class="absolute top-4 left-4 md:top-8 md:left-8 flex items-center text-gray-400 hover:text-white transition duration-200 cursor-pointer z-10">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 md:mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        <span class="hidden md:inline font-bold text-lg">메인으로</span>
+    </a>
+
+    <header class="text-center mb-8 mt-12 md:mt-0">
+        <h1 class="text-4xl md:text-5xl font-extrabold text-yellow-400 mb-2 drop-shadow-lg">영암중 1학년 하루한줄 글쓰기 영단어</h1>
+        <p class="text-gray-400 text-lg">알파벳을 선택하면 랜덤으로 2개의 단어와 예문이 나타납니다!</p>
+        <button id="resetBtn" class="mt-4 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition duration-200">
+            게임 초기화
+        </button>
     </header>
 
-    <!-- Main Container -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
-        
-        <!-- Preset Quick Selection Buttons -->
-        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mb-6">
-            <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
-                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
-                    <i class="fa-solid fa-wand-magic-sparkles text-indigo-500"></i> 주요 국가 및 시대별 대표 유형 (클릭하여 적용)
-                </span>
-            </div>
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-                <button onclick="setPreset(3.8, 62)" class="px-3 py-2 text-xs font-semibold rounded-xl border border-slate-200 hover:border-emerald-400 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 transition flex flex-col items-center gap-1 group">
-                    <span class="font-bold group-hover:scale-105 transition-transform">🔺 피라미드형</span>
-                    <span class="text-[11px] text-slate-400 font-normal">개발도상국 (고출산·저수명)</span>
-                </button>
-                <button onclick="setPreset(2.1, 80)" class="px-3 py-2 text-xs font-semibold rounded-xl border border-slate-200 hover:border-blue-400 hover:bg-blue-50 text-slate-700 hover:text-blue-700 transition flex flex-col items-center gap-1 group">
-                    <span class="font-bold group-hover:scale-105 transition-transform">🔔 종형 (정체형)</span>
-                    <span class="text-[11px] text-slate-400 font-normal">선진국 안정기 (대체출산율)</span>
-                </button>
-                <button onclick="setPreset(1.3, 84)" class="px-3 py-2 text-xs font-semibold rounded-xl border border-slate-200 hover:border-amber-400 hover:bg-amber-50 text-slate-700 hover:text-amber-700 transition flex flex-col items-center gap-1 group">
-                    <span class="font-bold group-hover:scale-105 transition-transform">🏺 항아리형 (감퇴형)</span>
-                    <span class="text-[11px] text-slate-400 font-normal">저출산·고령화 진행</span>
-                </button>
-                <button onclick="setPreset(0.72, 83.6)" class="px-3 py-2 text-xs font-semibold rounded-xl border border-red-200 bg-red-50/50 hover:bg-red-100 text-red-700 transition flex flex-col items-center gap-1 group">
-                    <span class="font-bold group-hover:scale-105 transition-transform">🇰🇷 현재 대한민국</span>
-                    <span class="text-[11px] text-red-500 font-normal">초저출산 (합계출산율 0.72)</span>
-                </button>
-                <button onclick="setPreset(0.6, 90)" class="px-3 py-2 text-xs font-semibold rounded-xl border border-purple-200 bg-purple-50/50 hover:bg-purple-100 text-purple-700 transition flex flex-col items-center gap-1 group col-span-2 sm:col-span-1">
-                    <span class="font-bold group-hover:scale-105 transition-transform">🔮 미래 초고령사회</span>
-                    <span class="text-[11px] text-purple-500 font-normal">극심한 인구 감소·초고령</span>
-                </button>
-            </div>
+    <main class="flex-grow flex flex-col items-center w-full">
+        <!-- 알파벳 그리드 -->
+        <div id="alphabetGrid" class="jeopardy-grid">
+            <!-- 알파벳 카드가 JS로 생성됨 -->
         </div>
 
-        <!-- Layout Grid: Left Controls & Right Metrics, Center Chart -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-            <!-- Controls Sidebar (3 cols on large screen) -->
-            <div class="lg:col-span-4 space-y-6">
-                
-                <!-- Sliders Box -->
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-6">
-                    <h2 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
-                        <i class="fa-solid fa-sliders text-indigo-600"></i> 인구 변수 조절
-                    </h2>
-
-                    <!-- Fertility Rate Slider -->
-                    <div>
-                        <div class="flex justify-between items-center mb-2">
-                            <label for="fertilitySlider" class="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
-                                <i class="fa-solid fa-baby text-pink-500"></i> 합계출산율 (TFR)
-                            </label>
-                            <span class="text-lg font-extrabold text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-lg border border-indigo-100">
-                                <span id="fertilityValue">0.72</span>명
-                            </span>
-                        </div>
-                        <input type="range" id="fertilitySlider" min="0.5" max="4.5" step="0.05" value="0.72"
-                            class="w-full h-2.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600 focus:outline-none">
-                        <div class="flex justify-between text-[11px] text-slate-400 mt-1 font-medium">
-                            <span>0.5명 (초저출산)</span>
-                            <span>2.1명 (인구유지)</span>
-                            <span>4.5명 (다출산)</span>
-                        </div>
-                        <p class="text-xs text-slate-500 mt-2 bg-slate-50 p-2.5 rounded-lg leading-relaxed">
-                            <i class="fa-solid fa-circle-info text-slate-400 mr-1"></i>
-                            가임 여성 1명이 평생 낳을 것으로 예상되는 평균 출생아 수입니다.
-                        </p>
-                    </div>
-
-                    <!-- Life Expectancy Slider -->
-                    <div>
-                        <div class="flex justify-between items-center mb-2">
-                            <label for="lifeSlider" class="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
-                                <i class="fa-solid fa-heart-pulse text-red-500"></i> 기대수명 (평균수명)
-                            </label>
-                            <span class="text-lg font-extrabold text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-lg border border-indigo-100">
-                                <span id="lifeValue">83.6</span>세
-                            </span>
-                        </div>
-                        <input type="range" id="lifeSlider" min="50" max="95" step="0.5" value="83.6"
-                            class="w-full h-2.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600 focus:outline-none">
-                        <div class="flex justify-between text-[11px] text-slate-400 mt-1 font-medium">
-                            <span>50세</span>
-                            <span>70세</span>
-                            <span>95세</span>
-                        </div>
-                        <p class="text-xs text-slate-500 mt-2 bg-slate-50 p-2.5 rounded-lg leading-relaxed">
-                            <i class="fa-solid fa-circle-info text-slate-400 mr-1"></i>
-                            갓 태어난 생존아가 향후 살아갈 것으로 기대되는 평균 연령입니다.
-                        </p>
-                    </div>
-
-                </div>
-
-                <!-- Population Ratio Cards -->
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-                    <h2 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center justify-between">
-                        <span class="flex items-center gap-2">
-                            <i class="fa-solid fa-users text-indigo-600"></i> 3대 연령층 인구 비율
-                        </span>
-                        <span id="pyramidTypeBadge" class="text-xs px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 font-bold">
-                            진단 중...
-                        </span>
-                    </h2>
-
-                    <!-- Youth (0-14) -->
-                    <div class="p-3 bg-emerald-50/60 rounded-xl border border-emerald-100 transition-transform duration-200">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
-                                <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
-                                유소년 인구 (0~14세)
-                            </span>
-                            <span id="youthRatio" class="text-lg font-black text-emerald-700">0.0%</span>
-                        </div>
-                        <div class="w-full bg-emerald-200/60 h-2 rounded-full overflow-hidden">
-                            <div id="youthBar" class="bg-emerald-500 h-full transition-all duration-300" style="width: 0%"></div>
-                        </div>
-                    </div>
-
-                    <!-- Working Age (15-64) -->
-                    <div class="p-3 bg-indigo-50/60 rounded-xl border border-indigo-100 transition-transform duration-200">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="text-xs font-bold text-indigo-800 flex items-center gap-1.5">
-                                <span class="w-3 h-3 rounded-full bg-indigo-500 inline-block"></span>
-                                생산연령 인구 (15~64세)
-                            </span>
-                            <span id="workRatio" class="text-lg font-black text-indigo-700">0.0%</span>
-                        </div>
-                        <div class="w-full bg-indigo-200/60 h-2 rounded-full overflow-hidden">
-                            <div id="workBar" class="bg-indigo-500 h-full transition-all duration-300" style="width: 0%"></div>
-                        </div>
-                    </div>
-
-                    <!-- Elderly (65+) -->
-                    <div class="p-3 bg-amber-50/60 rounded-xl border border-amber-100 transition-transform duration-200">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="text-xs font-bold text-amber-800 flex items-center gap-1.5">
-                                <span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span>
-                                노년 인구 (65세 이상)
-                            </span>
-                            <span id="elderRatio" class="text-lg font-black text-amber-700">0.0%</span>
-                        </div>
-                        <div class="w-full bg-amber-200/60 h-2 rounded-full overflow-hidden">
-                            <div id="elderBar" class="bg-amber-500 h-full transition-all duration-300" style="width: 0%"></div>
-                        </div>
-                    </div>
-
-                    <!-- Dependency Indices Box -->
-                    <div class="pt-2 border-t border-slate-100 grid grid-cols-2 gap-2 text-center">
-                        <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                            <p class="text-[11px] font-semibold text-slate-500">노년부양비</p>
-                            <p id="elderDependency" class="text-base font-bold text-slate-800 mt-0.5">0.0</p>
-                            <p class="text-[10px] text-slate-400">(생산인구 100명당 노인)</p>
-                        </div>
-                        <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                            <p class="text-[11px] font-semibold text-slate-500">유소년부양비</p>
-                            <p id="youthDependency" class="text-base font-bold text-slate-800 mt-0.5">0.0</p>
-                            <p class="text-[10px] text-slate-400">(생산인구 100명당 유소년)</p>
-                        </div>
-                        <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                            <p class="text-[11px] font-semibold text-slate-500">총부양비</p>
-                            <p id="totalDependency" class="text-base font-bold text-indigo-700 mt-0.5">0.0</p>
-                            <p class="text-[10px] text-slate-400">(노년+유소년 부양비)</p>
-                        </div>
-                        <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                            <p class="text-[11px] font-semibold text-slate-500">노령화 지수</p>
-                            <p id="agingIndex" class="text-base font-bold text-amber-700 mt-0.5">0.0</p>
-                            <p class="text-[10px] text-slate-400">(유소년 100명당 노인)</p>
-                        </div>
-                    </div>
-
-                    <!-- Aging Stage Info -->
-                    <div id="agingStatusBox" class="p-3 text-xs rounded-xl font-medium text-center border">
-                        고령화 단계 판정 중...
-                    </div>
-
-                </div>
-
+        <!-- 게임 상태 (남은 단어 등) -->
+        <div id="statusContainer" class="w-full max-w-4xl shadow-lg border border-gray-700 mb-8">
+            <h2 class="text-2xl font-bold mb-4 text-blue-300 border-b border-gray-600 pb-2">사용된 단어 목록 (<span id="usedWordCount">0</span>)</h2>
+            <div id="usedWordsList" class="flex flex-wrap gap-2">
+                <!-- 사용된 단어 태그가 여기에 표시됨 -->
+                <p class="text-gray-500 italic text-sm w-full">아직 사용된 단어가 없습니다.</p>
             </div>
-
-            <!-- Chart Area (8 cols on large screen) -->
-            <div class="lg:col-span-8 bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
-                
-                <div>
-                    <!-- Chart Header & Legend -->
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 mb-2 border-b border-slate-100">
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                                <i class="fa-solid fa-shapes text-indigo-600"></i> 실시간 인구 피라미드
-                            </h2>
-                            <p class="text-xs text-slate-500">좌측: 남성 인구 비율(%) / 우측: 여성 인구 비율(%)</p>
-                        </div>
-                        
-                        <!-- Legend -->
-                        <div class="flex items-center gap-3 text-xs">
-                            <span class="flex items-center gap-1.5 font-medium">
-                                <span class="w-3 h-3 rounded bg-emerald-500"></span> 유소년(0~14)
-                            </span>
-                            <span class="flex items-center gap-1.5 font-medium">
-                                <span class="w-3 h-3 rounded bg-indigo-500"></span> 생산연령(15~64)
-                            </span>
-                            <span class="flex items-center gap-1.5 font-medium">
-                                <span class="w-3 h-3 rounded bg-amber-500"></span> 노년(65+)
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- SVG Chart Container -->
-                    <div id="chartContainer" class="w-full relative overflow-x-auto">
-                        <svg id="pyramidSvg" viewBox="0 0 700 520" class="w-full h-auto min-w-[550px] select-none">
-                            <!-- Rendered dynamically by JS -->
-                        </svg>
-                    </div>
-                </div>
-
-                <!-- Chart Guide Footer -->
-                <div class="mt-4 p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-600 flex items-center justify-between flex-wrap gap-2">
-                    <span class="flex items-center gap-1.5">
-                        <i class="fa-solid fa-lightbulb text-amber-500"></i>
-                        막대에 마우스를 올리거나 터치하면 해당 연령층의 구체적인 인구 비율을 확인할 수 있습니다.
-                    </span>
-                    <span class="text-[11px] text-slate-400 font-mono">가상 인구 모델 기반 계산</span>
-                </div>
-
-            </div>
-
         </div>
-
-        <!-- Classroom Discussion Questions (생각해볼 질문 2가지) -->
-        <section class="mt-8 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <div class="flex items-center gap-2 mb-4 border-b border-slate-100 pb-3">
-                <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">
-                    <i class="fa-solid fa-comments"></i>
-                </div>
-                <div>
-                    <h2 class="text-lg font-bold text-slate-800">생각해볼 질문 (수업 탐구 활동)</h2>
-                    <p class="text-xs text-slate-500">시뮬레이터를 직접 조작해 보며 모둠별/개인별로 답변을 생각해 봅시다.</p>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
-                <!-- Question 1 -->
-                <div class="bg-slate-50 p-5 rounded-xl border border-slate-200/80 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center gap-2 mb-2">
-                            <span class="px-2.5 py-0.5 bg-indigo-600 text-white font-bold text-xs rounded-md">질문 1</span>
-                            <h3 class="font-bold text-slate-800 text-sm">출산율과 기대수명의 변화</h3>
-                        </div>
-                        <p class="text-sm text-slate-700 leading-relaxed mb-4">
-                            출산율을 낮추고 기대수명을 늘릴 때, 인구 피라미드의 <strong>바닥(밑변)</strong>과 <strong>상단(윗부분)</strong>의 모양은 각각 어떻게 변화하나요? 또한 이 변화가 <strong>총부양비 및 노년부양비</strong>에 미치는 영향을 설명해 보세요.
-                        </p>
-                    </div>
-
-                    <!-- Expandable Answer Hint -->
-                    <details class="group mt-2">
-                        <summary class="cursor-pointer text-xs font-bold text-indigo-600 group-hover:text-indigo-800 flex items-center gap-1 select-none">
-                            <i class="fa-solid fa-chevron-right group-open:rotate-90 transition-transform"></i>
-                            <span>탐구 힌트 및 모범 답안 보기</span>
-                        </summary>
-                        <div class="mt-3 p-3 bg-white rounded-lg border border-indigo-100 text-xs text-slate-600 space-y-1.5 leading-relaxed">
-                            <p>• <strong>피라미드 모양 변화:</strong> 출산율이 낮아지면 유소년층(0~14세)이 줄어들어 피라미드의 <em>밑변이 좁아지고</em>, 기대수명이 길어지면 노년층(65세 이상)이 늘어나 <em>상단이 넓어집니다</em>. (피라미드형 → 종형 → 항아리형)</p>
-                            <p>• <strong>부양비 변화:</strong> 유소년부양비는 감소하지만 노년부양비가 가파르게 상승하여, 생산연령 인구(15~64세)가 짊어져야 할 <em>총부양비 부담이 커지게 됩니다</em>.</p>
-                        </div>
-                    </details>
-                </div>
-
-                <!-- Question 2 -->
-                <div class="bg-slate-50 p-5 rounded-xl border border-slate-200/80 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center gap-2 mb-2">
-                            <span class="px-2.5 py-0.5 bg-indigo-600 text-white font-bold text-xs rounded-md">질문 2</span>
-                            <h3 class="font-bold text-slate-800 text-sm">초고령 사회의 사회적 대책</h3>
-                        </div>
-                        <p class="text-sm text-slate-700 leading-relaxed mb-4">
-                            현재 대한민국처럼 <strong>노년 인구 비율이 20%를 넘는 '초고령 사회'</strong>에 진입했을 때 발생할 수 있는 사회적 문제점(노동력, 복지 비용 등)은 무엇이며, 이를 해결하기 위해 우리 사회가 준비해야 할 대책을 제안해 보세요.
-                        </p>
-                    </div>
-
-                    <!-- Expandable Answer Hint -->
-                    <details class="group mt-2">
-                        <summary class="cursor-pointer text-xs font-bold text-indigo-600 group-hover:text-indigo-800 flex items-center gap-1 select-none">
-                            <i class="fa-solid fa-chevron-right group-open:rotate-90 transition-transform"></i>
-                            <span>탐구 힌트 및 모범 답안 보기</span>
-                        </summary>
-                        <div class="mt-3 p-3 bg-white rounded-lg border border-indigo-100 text-xs text-slate-600 space-y-1.5 leading-relaxed">
-                            <p>• <strong>주요 문제점:</strong> 생산연령인구 감소로 인한 경제 성장 둔화, 연금·medical 의료비 증가로 인한 세금 및 사회적 부담 가중, 노인 빈곤 및 외로움 문제.</p>
-                            <p>• <strong>해결 대책:</strong> 출산·육아 친화적 환경 조성(보육 지원, 주거 안정), 정년 연장 및 노인 일자리 창출, 복지 제도 재정비, 여성 및 외국인 인력 활용, 로봇·AI 기술을 활용한 생산성 보완.</p>
-                        </div>
-                    </details>
-                </div>
-
-            </div>
-        </section>
-
     </main>
 
-    <footer class="bg-white border-t border-slate-200 mt-8 py-4">
-        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-400">
-            중학교 사회과 교육과정 연계 시뮬레이션 | 출산율 및 기대수명 수식 기반 인구구조 추정 모델
+    <!-- 모달 -->
+    <div id="wordModal">
+        <div class="modal-content border-2 border-blue-500">
+            <span class="close-btn" id="closeModalBtn">&times;</span>
+            <h2 class="text-2xl font-bold text-yellow-500 mb-6 border-b-2 border-gray-600 pb-2 inline-block">오늘의 단어</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
+                <!-- Word Card 1 -->
+                <div id="card1" class="bg-gray-700 p-6 rounded-lg shadow-inner flex flex-col justify-between">
+                    <div>
+                        <p class="text-gray-400 mb-2 font-semibold tracking-wider">WORD 1</p>
+                        <div id="word1" class="word-display">Word</div>
+                        <div id="meaning1" class="word-meaning mb-4 font-medium">뜻</div>
+                    </div>
+                    <div id="example1" class="text-lg text-gray-200 bg-gray-800 p-4 rounded text-left leading-relaxed shadow-inner break-keep border-l-4 border-blue-400">
+                        <!-- 예문이 여기에 들어갑니다 -->
+                    </div>
+                </div>
+                
+                <!-- Word Card 2 -->
+                <div id="card2" class="bg-gray-700 p-6 rounded-lg shadow-inner flex flex-col justify-between">
+                    <div>
+                        <p class="text-gray-400 mb-2 font-semibold tracking-wider">WORD 2</p>
+                        <div id="word2" class="word-display">Word</div>
+                        <div id="meaning2" class="word-meaning mb-4 font-medium">뜻</div>
+                    </div>
+                    <div id="example2" class="text-lg text-gray-200 bg-gray-800 p-4 rounded text-left leading-relaxed shadow-inner break-keep border-l-4 border-blue-400">
+                        <!-- 예문이 여기에 들어갑니다 -->
+                    </div>
+                </div>
+            </div>
+            
+            <button id="nextBtn" class="mt-8 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-10 rounded-full text-lg transition duration-200 shadow-lg">
+                확인 완료
+            </button>
         </div>
-    </footer>
+    </div>
 
     <script>
-        // Age group labels (5-year cohorts from 0-4 to 100+)
-        const ageGroups = [
-            "0-4세", "5-9세", "10-14세", "15-19세", "20-24세",
-            "25-29세", "30-34세", "35-39세", "40-44세", "45-49세",
-            "50-54세", "55-59세", "60-64세", "65-69세", "70-74세",
-            "75-79세", "80-84세", "85-89세", "90-94세", "95-99세", "100세+"
+        /**
+         * 영암중 1학년 5,6,7,8과 단어 리스트 및 예문
+         * substitutable 클래스가 적용된 부분은 학생들이 다른 단어로 바꿔쓸 수 있는 응용 구역입니다.
+         */
+        const rawWordList = [
+            // Lesson 5
+            { word: "admiral", meaning: "해군 대장", example: "<span class='substitutable'>Yi Sun-sin</span> was a great admiral." },
+            { word: "battle", meaning: "전투", example: "Please stop <span class='substitutable'>the</span> battle." },
+            { word: "cliff", meaning: "절벽", example: "The cliff is very <span class='substitutable'>high</span>." },
+            { word: "coast", meaning: "해안", example: "<span class='substitutable'>My hometown</span> is near the coast." },
+            { word: "experience", meaning: "경험", example: "They had a great experience in <span class='substitutable'>Boseong</span>." },
+            { word: "famous", meaning: "유명한", example: "She is a famous <span class='substitutable'>singer</span>." },
+            { word: "finally", meaning: "결국", example: "I finally solved <span class='substitutable'>the problem</span>." },
+            { word: "fisherman", meaning: "어부", example: "A fisherman is catching <span class='substitutable'>fish</span> in the sea." },
+            { word: "huge", meaning: "거대한", example: "They live in a huge <span class='substitutable'>house</span>." },
+            { word: "imagine", meaning: "상상하다", example: "I imagine <span class='substitutable'>my life</span> in the future." },
+            { word: "magician", meaning: "마술사", example: "The magician changed <span class='substitutable'>a picture</span> into a rabbit." },
+            { word: "mean", meaning: "의미하다", example: "What does <span class='substitutable'>this word</span> mean?" },
+            { word: "museum", meaning: "박물관, 미술관", example: "There are many interesting <span class='substitutable'>paintings</span> in the museum." },
+            { word: "nickname", meaning: "별명", example: "His nickname is '<span class='substitutable'>Happy Rabbit</span>.'" },
+            { word: "peaceful", meaning: "평화로운", example: "<span class='substitutable'>The park</span> is so peaceful." },
+            { word: "radish", meaning: "무", example: "<span class='substitutable'>My father</span> grew this radish in the garden." },
+            { word: "spicy", meaning: "매운", example: "<span class='substitutable'>Tteokbokki</span> is spicy but delicious." },
+            { word: "squid", meaning: "오징어", example: "The squid is swimming fast in <span class='substitutable'>the sea</span>." },
+            { word: "statue", meaning: "조각상", example: "There is a statue of a <span class='substitutable'>lion</span> in the park." },
+            { word: "sunset", meaning: "일몰", example: "<span class='substitutable'>We</span> watched the sunset together." },
+            { word: "various", meaning: "다양한", example: "This painting shows various <span class='substitutable'>colors</span>." },
+            { word: "view", meaning: "경치", example: "You can enjoy a beautiful view <span class='substitutable'>here</span>." },
+            { word: "a bit", meaning: "약간", example: "I was a bit <span class='substitutable'>late</span>." },
+            { word: "go on a trip", meaning: "여행 가다", example: "I'm going to go on a trip with <span class='substitutable'>my friends</span> next week." },
+            { word: "hundreds of", meaning: "수백의", example: "There are hundreds of <span class='substitutable'>books</span> in the library." },
+
+            // Lesson 6
+            { word: "artwork", meaning: "예술 작품", example: "You can see all of his artworks in <span class='substitutable'>this museum</span>." },
+            { word: "beast", meaning: "야수", example: "<span class='substitutable'>The lion</span> is the king of beasts." },
+            { word: "create", meaning: "창조하다", example: "Her cook created a new <span class='substitutable'>dish</span>." },
+            { word: "emotion", meaning: "감정", example: "<span class='substitutable'>The face</span> didn't show any emotion." },
+            { word: "exhibit", meaning: "전시하다", example: "She exhibits her <span class='substitutable'>paintings</span> at this art gallery." },
+            { word: "exhibition", meaning: "전시회", example: "The exhibition is about <span class='substitutable'>traditional arts</span>." },
+            { word: "expensive", meaning: "비싼", example: "<span class='substitutable'>New cars</span> are expensive." },
+            { word: "express", meaning: "표현하다, 나타내다", example: "Nick expressed his <span class='substitutable'>ideas</span> clearly." },
+            { word: "gallery", meaning: "미술관", example: "<span class='substitutable'>Many people</span> visited the art gallery today." },
+            { word: "nap", meaning: "낮잠", example: "I usually take a nap after <span class='substitutable'>lunch</span>." },
+            { word: "own", meaning: "자신의", example: "He has his own <span class='substitutable'>room</span>." },
+            { word: "price", meaning: "값, 가격", example: "<span class='substitutable'>This toy</span> has a high price." },
+            { word: "scary", meaning: "무서운", example: "I had a really scary <span class='substitutable'>dream</span> last night." },
+            { word: "shape", meaning: "모양, 형태", example: "What shape is <span class='substitutable'>the table</span>?" },
+            { word: "shell", meaning: "껍데기, 껍질", example: "They are collecting shells on <span class='substitutable'>the beach</span>." },
+            { word: "simple", meaning: "단순한, 간단한", example: "<span class='substitutable'>These cups</span> have simple designs." },
+            { word: "snail", meaning: "달팽이", example: "A snail is moving <span class='substitutable'>slowly</span>." },
+            { word: "strange", meaning: "이상한", example: "She heard a strange <span class='substitutable'>sound</span>." },
+            { word: "success", meaning: "성공", example: "<span class='substitutable'>The film</span> was a great success." },
+            { word: "trace", meaning: "따라가다", example: "Trace <span class='substitutable'>the lines</span> with your finger." },
+            { word: "unique", meaning: "독특한", example: "<span class='substitutable'>These potatoes</span> look unique." },
+            { word: "wild", meaning: "야생의", example: "<span class='substitutable'>Lions</span> are wild animals." },
+            { word: "at first", meaning: "처음에", example: "<span class='substitutable'>Some students</span> were nervous at first." },
+            { word: "give up", meaning: "포기하다", example: "She didn't give up her <span class='substitutable'>dream</span>." },
+            { word: "look like", meaning: "~인 것처럼 보이다", example: "It looks like <span class='substitutable'>a balloon</span>." },
+
+            // Lesson 7
+            { word: "army", meaning: "군대", example: "<span class='substitutable'>My brother</span> is in the army." },
+            { word: "barbecue", meaning: "바비큐", example: "We had a barbecue party <span class='substitutable'>yesterday</span>." },
+            { word: "beat", meaning: "휘젓다, 섞다", example: "Beat the <span class='substitutable'>eggs</span> with a spoon." },
+            { word: "chewy", meaning: "쫄깃한", example: "<span class='substitutable'>The cookies</span> were chewy." },
+            { word: "crab", meaning: "게", example: "A crab has a <span class='substitutable'>hard</span> shell." },
+            { word: "curry", meaning: "카레", example: "I ate curry for <span class='substitutable'>lunch</span>." },
+            { word: "dessert", meaning: "후식, 디저트", example: "We had <span class='substitutable'>ice cream</span> for dessert." },
+            { word: "dish", meaning: "요리", example: "What is the best dish <span class='substitutable'>here</span>?" },
+            { word: "fry", meaning: "부치다, 튀기다", example: "I am frying <span class='substitutable'>some fish</span>." },
+            { word: "giant", meaning: "거대한", example: "<span class='substitutable'>That pizza</span> is giant." },
+            { word: "half", meaning: "반, 절반", example: "He ate only half of <span class='substitutable'>the pizza</span>." },
+            { word: "mixture", meaning: "혼합물", example: "Add <span class='substitutable'>the eggs</span> to the mixture." },
+            { word: "omelet", meaning: "오믈렛", example: "I had an omelet for <span class='substitutable'>breakfast</span>." },
+            { word: "order", meaning: "주문하다", example: "I ordered <span class='substitutable'>some salad</span>." },
+            { word: "pan", meaning: "팬, 냄비", example: "<span class='substitutable'>The eggs</span> were frying in the pan." },
+            { word: "popular", meaning: "인기 있는", example: "<span class='substitutable'>Fried chicken</span> is a popular food." },
+            { word: "pour", meaning: "붓다, 따르다", example: "Please pour <span class='substitutable'>some oil</span> into the pan." },
+            { word: "recipe", meaning: "조리법", example: "I didn't read the recipe <span class='substitutable'>carefully</span>." },
+            { word: "sour", meaning: "신", example: "<span class='substitutable'>This juice</span> tastes really sour." },
+            { word: "step", meaning: "단계", example: "Go to the <span class='substitutable'>next</span> step." },
+            { word: "strawberry", meaning: "딸기", example: "The strawberry was <span class='substitutable'>very sweet</span>." },
+            { word: "thick", meaning: "두꺼운", example: "<span class='substitutable'>My glasses</span> are thick." },
+            { word: "thin", meaning: "얇은", example: "<span class='substitutable'>This book</span> is thin." },
+            { word: "tip", meaning: "조언", example: "<span class='substitutable'>I'll</span> give you some tips." },
+            { word: "wrap", meaning: "싸다, 포장하다", example: "She wrapped <span class='substitutable'>the present</span>." },
+
+            // Lesson 8
+            { word: "curiously", meaning: "호기심을 갖고", example: "People are looking at <span class='substitutable'>the boy</span> curiously." },
+            { word: "first aid station", meaning: "구급소, 응급 치료소", example: "They are taking <span class='substitutable'>him</span> to the first aid station." },
+            { word: "flat", meaning: "바람이 빠진", example: "<span class='substitutable'>She</span> changed the flat tire." },
+            { word: "glove", meaning: "장갑", example: "The gloves are too big for <span class='substitutable'>me</span>." },
+            { word: "grade", meaning: "성적", example: "She got high grades in <span class='substitutable'>English</span>." },
+            { word: "happen", meaning: "일어나다, 발생하다", example: "What happened <span class='substitutable'>yesterday</span>?" },
+            { word: "hedgehog", meaning: "고슴도치", example: "The hedgehog is a very <span class='substitutable'>small</span> animal with spines." },
+            { word: "hug", meaning: "안다, 포옹하다", example: "<span class='substitutable'>They</span> hugged each other." },
+            { word: "hurt", meaning: "다치게 하다", example: "She fell and hurt her <span class='substitutable'>leg</span> badly." },
+            { word: "leave", meaning: "떠나다", example: "What time did you leave <span class='substitutable'>your house</span>?" },
+            { word: "lonely", meaning: "외로운", example: "<span class='substitutable'>Emily</span> lives alone and feels lonely." },
+            { word: "nervous", meaning: "초조한, 긴장한", example: "I felt nervous before <span class='substitutable'>the interview</span>." },
+            { word: "scared", meaning: "무서워하는", example: "She is scared of <span class='substitutable'>water</span>." },
+            { word: "scarf", meaning: "목도리", example: "I always wear gloves and a scarf in <span class='substitutable'>winter</span>." },
+            { word: "spine", meaning: "가시", example: "Be careful of the spines on <span class='substitutable'>the plant</span>." },
+            { word: "sponge", meaning: "스펀지", example: "<span class='substitutable'>This cake</span> looks like a sponge." },
+            { word: "spread", meaning: "번지다", example: "A smile spread over <span class='substitutable'>his face</span>." },
+            { word: "suddenly", meaning: "갑자기", example: "<span class='substitutable'>The sky</span> suddenly went dark." },
+            { word: "teen", meaning: "십대", example: "How was your teen <span class='substitutable'>life</span>?" },
+            { word: "wave", meaning: "손을 흔들다", example: "<span class='substitutable'>She</span> smiled and waved at me." },
+            { word: "without", meaning: "~ 없이", example: "Jack walked in the rain without <span class='substitutable'>an umbrella</span>." },
+            { word: "a few", meaning: "몇몇", example: "A few days later, I found <span class='substitutable'>my dog</span>." },
+            { word: "because of", meaning: "~ 때문에", example: "I didn't go out because of <span class='substitutable'>the bad weather</span>." },
+            { word: "next to", meaning: "~ 옆에", example: "<span class='substitutable'>The library</span> is next to the middle school." },
+            { word: "put on", meaning: "입다", example: "He put on <span class='substitutable'>a warm coat</span>." }
         ];
 
-        // DOM elements
-        const fertilitySlider = document.getElementById('fertilitySlider');
-        const lifeSlider = document.getElementById('lifeSlider');
-        const fertilityValue = document.getElementById('fertilityValue');
-        const lifeValue = document.getElementById('lifeValue');
+        // 중복 방지 (소문자 기준으로 중복된 단어를 하나만 유지)
+        const initialWordList = Array.from(
+            new Map(rawWordList.map(item => [item.word.toLowerCase(), item])).values()
+        );
 
-        const youthRatioEl = document.getElementById('youthRatio');
-        const workRatioEl = document.getElementById('workRatio');
-        const elderRatioEl = document.getElementById('elderRatio');
-        
-        const youthBarEl = document.getElementById('youthBar');
-        const workBarEl = document.getElementById('workBar');
-        const elderBarEl = document.getElementById('elderBar');
+        let wordList = []; // 남은 단어 목록
+        let usedWords = []; // 사용된 단어 목록
+        let clickedAlphabets = new Set(); // 클릭된 알파벳 카드 추적
 
-        const elderDepEl = document.getElementById('elderDependency');
-        const youthDepEl = document.getElementById('youthDependency');
-        const totalDepEl = document.getElementById('totalDependency');
-        const agingIndexEl = document.getElementById('agingIndex');
-        const agingStatusBox = document.getElementById('agingStatusBox');
-        const pyramidTypeBadge = document.getElementById('pyramidTypeBadge');
+        const alphabetGrid = document.getElementById('alphabetGrid');
+        const modal = document.getElementById('wordModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const usedWordsListContainer = document.getElementById('usedWordsList');
+        const usedWordCountSpan = document.getElementById('usedWordCount');
 
-        const svg = document.getElementById('pyramidSvg');
-
-        /**
-         * Calculates age cohort proportions based on Fertility Rate (TFR) and Life Expectancy (E)
-         * Uses dynamic demographic Weibull survival curves and fertility growth rate formulas
-         */
-        function calculatePopulationData(tfr, lifeExpectancy) {
-            let maleCohorts = [];
-            let femaleCohorts = [];
+        function initGame() {
+            // 원본 데이터 복사 (깊은 복사)
+            wordList = JSON.parse(JSON.stringify(initialWordList));
+            usedWords = [];
+            clickedAlphabets.clear();
             
-            // Growth rate factor based on replacement fertility (2.1)
-            // r > 0 when TFR > 2.1 (expanding), r < 0 when TFR < 2.1 (contracting)
-            const r = Math.log(tfr / 2.1) / 28.0;
-
-            // Female life expectancy is slightly higher on average (+3 years)
-            const eMale = lifeExpectancy - 1.5;
-            const eFemale = lifeExpectancy + 1.5;
-
-            let totalMale = 0;
-            let totalFemale = 0;
-
-            for (let i = 0; i < ageGroups.length; i++) {
-                const midAge = i * 5 + 2.5;
-
-                // Survival probability using parameterized Weibull distribution
-                // S(a) = exp(-(a / (1.1 * E))^k)
-                const survMale = Math.exp(-Math.pow(midAge / (1.08 * eMale), 4.2));
-                const survFemale = Math.exp(-Math.pow(midAge / (1.08 * eFemale), 4.6));
-
-                // Birth sex ratio (105 males per 100 females ~ 0.512 to 0.488)
-                const baseMale = 0.512 * Math.exp(-r * midAge);
-                const baseFemale = 0.488 * Math.exp(-r * midAge);
-
-                const mVal = Math.max(0.001, baseMale * survMale);
-                const fVal = Math.max(0.001, baseFemale * survFemale);
-
-                maleCohorts.push(mVal);
-                femaleCohorts.push(fVal);
-
-                totalMale += mVal;
-                totalFemale += fVal;
-            }
-
-            const grandTotal = totalMale + totalFemale;
-
-            // Normalize to percentages
-            const malePct = maleCohorts.map(v => (v / grandTotal) * 100);
-            const femalePct = femaleCohorts.map(v => (v / grandTotal) * 100);
-
-            return { malePct, femalePct };
+            renderGrid();
+            updateUsedWordsDisplay();
         }
 
-        function renderPyramid() {
-            const tfr = parseFloat(fertilitySlider.value);
-            const lifeExp = parseFloat(lifeSlider.value);
-
-            fertilityValue.textContent = tfr.toFixed(2);
-            lifeValue.textContent = lifeExp.toFixed(1);
-
-            const { malePct, femalePct } = calculatePopulationData(tfr, lifeExp);
-
-            // Calculate age group aggregated metrics
-            let youthTotal = 0; // 0-14 (indices 0, 1, 2)
-            let workTotal = 0;  // 15-64 (indices 3 to 12)
-            let elderTotal = 0; // 65+ (indices 13 to 20)
-
-            for (let i = 0; i < ageGroups.length; i++) {
-                const cohortSum = malePct[i] + femalePct[i];
-                if (i <= 2) {
-                    youthTotal += cohortSum;
-                } else if (i <= 12) {
-                    workTotal += cohortSum;
-                } else {
-                    elderTotal += cohortSum;
-                }
-            }
-
-            // Update ratio UI
-            youthRatioEl.textContent = youthTotal.toFixed(1) + '%';
-            workRatioEl.textContent = workTotal.toFixed(1) + '%';
-            elderRatioEl.textContent = elderTotal.toFixed(1) + '%';
-
-            youthBarEl.style.width = youthTotal + '%';
-            workBarEl.style.width = workTotal + '%';
-            elderBarEl.style.width = elderTotal + '%';
-
-            // Calculate Dependency Ratios
-            const elderDep = (elderTotal / workTotal) * 100;
-            const youthDep = (youthTotal / workTotal) * 100;
-            const totalDep = elderDep + youthDep;
-            const agingIdx = (elderTotal / youthTotal) * 100;
-
-            elderDepEl.textContent = elderDep.toFixed(1);
-            youthDepEl.textContent = youthDep.toFixed(1);
-            totalDepEl.textContent = totalDep.toFixed(1);
-            agingIndexEl.textContent = isFinite(agingIdx) ? agingIdx.toFixed(1) : '999+';
-
-            // Update Aging Classification Box
-            if (elderTotal >= 20.0) {
-                agingStatusBox.className = "p-3 text-xs rounded-xl font-bold text-center bg-purple-100 text-purple-800 border border-purple-200";
-                agingStatusBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> 현재 <strong>초고령 사회</strong> (노년 인구 20% 이상)`;
-            } else if (elderTotal >= 14.0) {
-                agingStatusBox.className = "p-3 text-xs rounded-xl font-bold text-center bg-amber-100 text-amber-800 border border-amber-200";
-                agingStatusBox.innerHTML = `<i class="fa-solid fa-circle-exclamation mr-1"></i> 현재 <strong>고령 사회</strong> (노년 인구 14%~20% 미만)`;
-            } else if (elderTotal >= 7.0) {
-                agingStatusBox.className = "p-3 text-xs rounded-xl font-bold text-center bg-blue-100 text-blue-800 border border-blue-200";
-                agingStatusBox.innerHTML = `<i class="fa-solid fa-clock mr-1"></i> 현재 <strong>고령화 사회</strong> (노년 인구 7%~14% 미만)`;
-            } else {
-                agingStatusBox.className = "p-3 text-xs rounded-xl font-bold text-center bg-emerald-100 text-emerald-800 border border-emerald-200";
-                agingStatusBox.innerHTML = `<i class="fa-solid fa-seedling mr-1"></i> 현재 <strong>청년 사회 / 고령화 이전</strong> (노년 인구 7% 미만)`;
-            }
-
-            // Pyramid Shape Type Badge
-            if (tfr >= 2.5) {
-                pyramidTypeBadge.textContent = "피라미드형 (확장형)";
-                pyramidTypeBadge.className = "text-xs px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold";
-            } else if (tfr >= 1.8 && lifeExp >= 75) {
-                pyramidTypeBadge.textContent = "종형 (정체형)";
-                pyramidTypeBadge.className = "text-xs px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 font-bold";
-            } else {
-                pyramidTypeBadge.textContent = "항아리형 (감퇴형)";
-                pyramidTypeBadge.className = "text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-bold";
-            }
-
-            // Draw SVG
-            drawSvgPyramid(malePct, femalePct);
-        }
-
-        function drawSvgPyramid(malePct, femalePct) {
-            const width = 700;
-            const height = 520;
-            const margin = { top: 40, right: 30, bottom: 40, left: 30 };
-            const chartWidth = width - margin.left - margin.right;
-            const chartHeight = height - margin.top - margin.bottom;
-
-            const centerX = width / 2;
-            const maxPct = 8.0; // max scale per side (%)
-            const sideWidth = (chartWidth / 2) - 35; // 35px space for center age text
-
-            const numGroups = ageGroups.length;
-            const barHeight = Math.floor(chartHeight / numGroups) - 2;
-
-            let html = `
-                <!-- Background Grid -->
-                <rect x="0" y="0" width="${width}" height="${height}" fill="#ffffff" rx="12"/>
-            `;
-
-            // Grid X Axis ticks (0%, 2%, 4%, 6%, 8%)
-            const ticks = [2, 4, 6, 8];
-            ticks.forEach(tick => {
-                const offsetX = (tick / maxPct) * sideWidth;
+        function renderGrid() {
+            alphabetGrid.innerHTML = '';
+            // A부터 Z까지 카드 생성
+            for (let i = 65; i <= 90; i++) {
+                const letter = String.fromCharCode(i);
+                const card = document.createElement('div');
+                card.className = 'alphabet-card';
+                card.textContent = letter;
                 
-                // Left side (Male)
-                const xLeft = centerX - 35 - offsetX;
-                html += `
-                    <line x1="${xLeft}" y1="${margin.top}" x2="${xLeft}" y2="${height - margin.bottom}" stroke="#e2e8f0" stroke-dasharray="3,3" />
-                    <text x="${xLeft}" y="${height - margin.bottom + 18}" font-size="10" fill="#94a3b8" text-anchor="middle">${tick}%</text>
-                `;
-
-                // Right side (Female)
-                const xRight = centerX + 35 + offsetX;
-                html += `
-                    <line x1="${xRight}" y1="${margin.top}" x2="${xRight}" y2="${height - margin.bottom}" stroke="#e2e8f0" stroke-dasharray="3,3" />
-                    <text x="${xRight}" y="${height - margin.bottom + 18}" font-size="10" fill="#94a3b8" text-anchor="middle">${tick}%</text>
-                `;
-            });
-
-            // Center 0% lines
-            html += `
-                <line x1="${centerX - 35}" y1="${margin.top}" x2="${centerX - 35}" y2="${height - margin.bottom}" stroke="#cbd5e1" stroke-width="1.5" />
-                <line x1="${centerX + 35}" y1="${margin.top}" x2="${centerX + 35}" y2="${height - margin.bottom}" stroke="#cbd5e1" stroke-width="1.5" />
-                <text x="${centerX - 35}" y="${height - margin.bottom + 18}" font-size="10" fill="#64748b" font-weight="bold" text-anchor="middle">0%</text>
-                <text x="${centerX + 35}" y="${height - margin.bottom + 18}" font-size="10" fill="#64748b" font-weight="bold" text-anchor="middle">0%</text>
-            `;
-
-            // Title labels on top of chart
-            html += `
-                <text x="${centerX - 35 - sideWidth / 2}" y="22" font-size="13" font-weight="bold" fill="#2563eb" text-anchor="middle">
-                    👨 남성 (Male)
-                </text>
-                <text x="${centerX + 35 + sideWidth / 2}" y="22" font-size="13" font-weight="bold" fill="#db2777" text-anchor="middle">
-                    👩 여성 (Female)
-                </text>
-            `;
-
-            // Draw Cohort Bars
-            for (let i = 0; i < numGroups; i++) {
-                // Reverse render so youngest (0-4) is at bottom
-                const ageIdx = i; 
-                const y = height - margin.bottom - (i + 1) * (barHeight + 2);
-
-                const mVal = malePct[ageIdx];
-                const fVal = femalePct[ageIdx];
-
-                const mWidth = Math.min(sideWidth, (mVal / maxPct) * sideWidth);
-                const fWidth = Math.min(sideWidth, (fVal / maxPct) * sideWidth);
-
-                const mX = centerX - 35 - mWidth;
-                const fX = centerX + 35;
-
-                // Color code based on age bracket
-                let fillColorMale, fillColorFemale, hoverColor;
-                if (ageIdx <= 2) {
-                    // Youth (0-14)
-                    fillColorMale = "#34d399";   // Emerald light
-                    fillColorFemale = "#10b981"; // Emerald
-                } else if (ageIdx <= 12) {
-                    // Working Age (15-64)
-                    fillColorMale = "#60a5fa";   // Blue light
-                    fillColorFemale = "#3b82f6"; // Blue
+                // 이미 클릭된 알파벳이거나 전체 남은 단어가 없으면 비활성화
+                if (clickedAlphabets.has(letter) || wordList.length === 0) {
+                    card.classList.add('disabled');
                 } else {
-                    // Elderly (65+)
-                    fillColorMale = "#fbbf24";   // Amber light
-                    fillColorFemale = "#f59e0b"; // Amber
+                    card.addEventListener('click', () => handleAlphabetClick(letter));
                 }
+                
+                alphabetGrid.appendChild(card);
+            }
+        }
 
-                // Age label in middle column
-                html += `
-                    <!-- Age Label -->
-                    <rect x="${centerX - 32}" y="${y}" width="64" height="${barHeight}" fill="#f1f5f9" rx="4"/>
-                    <text x="${centerX}" y="${y + barHeight / 2 + 3.5}" font-size="10" font-weight="600" fill="#475569" text-anchor="middle">
-                        ${ageGroups[ageIdx]}
-                    </text>
+        function handleAlphabetClick(letter) {
+            if (clickedAlphabets.has(letter) || wordList.length === 0) return;
 
-                    <!-- Male Bar -->
-                    <rect class="bar-transition cursor-pointer" x="${mX}" y="${y}" width="${mWidth}" height="${barHeight}" fill="${fillColorMale}" rx="3">
-                        <title>남성 ${ageGroups[ageIdx]}: ${mVal.toFixed(2)}%</title>
-                    </rect>
+            // 전체 남은 단어를 랜덤하게 섞기
+            shuffleArray(wordList);
 
-                    <!-- Female Bar -->
-                    <rect class="bar-transition cursor-pointer" x="${fX}" y="${y}" width="${fWidth}" height="${barHeight}" fill="${fillColorFemale}" rx="3">
-                        <title>여성 ${ageGroups[ageIdx]}: ${fVal.toFixed(2)}%</title>
-                    </rect>
-                `;
+            // 최대 2개 선택 (남은 단어가 1개면 1개만 선택)
+            const selectedCount = Math.min(2, wordList.length);
+            const selectedWords = wordList.splice(0, selectedCount); // wordList에서 빼내기
+            
+            // 사용된 단어 목록에 추가
+            usedWords.push(...selectedWords);
+            
+            // 클릭된 알파벳 기록
+            clickedAlphabets.add(letter);
+
+            showModal(selectedWords);
+            renderGrid(); // 버튼 상태 업데이트
+            updateUsedWordsDisplay();
+        }
+
+        // 배열 랜덤 섞기 (Fisher-Yates shuffle)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function showModal(words) {
+            const card1 = document.getElementById('card1');
+            const w1Div = document.getElementById('word1');
+            const m1Div = document.getElementById('meaning1');
+            const e1Div = document.getElementById('example1');
+            
+            const card2 = document.getElementById('card2');
+            const w2Div = document.getElementById('word2');
+            const m2Div = document.getElementById('meaning2');
+            const e2Div = document.getElementById('example2');
+            
+            // 첫 번째 단어 세팅
+            if (words[0]) {
+                w1Div.textContent = words[0].word;
+                m1Div.textContent = words[0].meaning;
+                e1Div.innerHTML = words[0].example;
+                card1.style.display = 'flex';
+            } else {
+                card1.style.display = 'none';
             }
 
-            svg.innerHTML = html;
+            // 두 번째 단어 세팅 (남은 단어가 1개일 경우를 대비)
+            if (words[1]) {
+                w2Div.textContent = words[1].word;
+                m2Div.textContent = words[1].meaning;
+                e2Div.innerHTML = words[1].example;
+                card2.style.display = 'flex';
+            } else {
+                card2.style.display = 'none';
+            }
+
+            modal.style.display = 'flex';
         }
 
-        function setPreset(tfr, life) {
-            fertilitySlider.value = tfr;
-            lifeSlider.value = life;
-            renderPyramid();
+        function closeModal() {
+            modal.style.display = 'none';
         }
 
-        // Event listeners
-        fertilitySlider.addEventListener('input', renderPyramid);
-        lifeSlider.addEventListener('input', renderPyramid);
+        function updateUsedWordsDisplay() {
+            usedWordCountSpan.textContent = usedWords.length;
+            
+            if (usedWords.length === 0) {
+                usedWordsListContainer.innerHTML = '<p class="text-gray-500 italic text-sm w-full">아직 사용된 단어가 없습니다.</p>';
+                return;
+            }
 
-        // Initial render on page load
-        window.onload = function() {
-            renderPyramid();
-        };
+            usedWordsListContainer.innerHTML = '';
+            
+            // 사용된 단어를 알파벳 순으로 정렬하여 보기 좋게 표시
+            const sortedUsedWords = [...usedWords].sort((a, b) => a.word.localeCompare(b.word));
+
+            sortedUsedWords.forEach(item => {
+                const tag = document.createElement('span');
+                tag.className = 'bg-gray-700 text-gray-300 text-sm font-medium mr-2 mb-2 px-3 py-1 rounded-full border border-gray-600 flex flex-col items-center';
+                tag.innerHTML = `<span class="text-yellow-400 font-bold">${item.word}</span><span class="text-xs text-gray-400 mt-1">${item.meaning}</span>`;
+                usedWordsListContainer.appendChild(tag);
+            });
+        }
+
+        closeModalBtn.addEventListener('click', closeModal);
+        nextBtn.addEventListener('click', closeModal);
+        resetBtn.addEventListener('click', () => {
+            if(confirm("정말 게임을 초기화 하시겠습니까? 진행 상황이 모두 사라집니다.")) {
+                initGame();
+            }
+        });
+
+        // 모달 바깥 클릭 시 닫기
+        window.addEventListener('click', (event) => {
+            if (event.target == modal) {
+                closeModal();
+            }
+        });
+
+        // 앱 시작
+        initGame();
+
     </script>
 </body>
 </html>
