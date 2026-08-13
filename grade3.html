@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>영암중 3학년 하루한줄 글쓰기 영단어</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #1a202c; /* Tailwind gray-900 */
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .jeopardy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 1rem;
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .alphabet-card {
+            background-color: #2b6cb0; /* Tailwind blue-600 */
+            color: #fbd38d; /* Tailwind orange-200 */
+            font-size: 2rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100px;
+            cursor: pointer;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s, background-color 0.2s;
+            text-transform: uppercase;
+        }
+
+        .alphabet-card:hover:not(.disabled) {
+            transform: scale(1.05);
+            background-color: #2c5282; /* Tailwind blue-800 */
+        }
+
+        .alphabet-card.disabled {
+            background-color: #4a5568; /* Tailwind gray-700 */
+            color: #a0aec0; /* Tailwind gray-400 */
+            cursor: not-allowed;
+            text-decoration: line-through;
+        }
+
+        #wordModal {
+            display: none;
+            position: fixed;
+            z-index: 50;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #2d3748; /* Tailwind gray-800 */
+            padding: 2.5rem;
+            border-radius: 1rem;
+            text-align: center;
+            position: relative;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            animation: popIn 0.3s ease-out forwards;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .word-display {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #63b3ed; /* Tailwind blue-300 */
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .word-meaning {
+            font-size: 1.25rem;
+            color: #e2e8f0; /* Tailwind gray-200 */
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
+            font-size: 2rem;
+            color: #a0aec0;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .close-btn:hover { color: white; }
+
+        #statusContainer {
+            background-color: #2d3748;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            margin-top: 2rem;
+        }
+
+        /* 예문 빈칸 대체어 강조 스타일 */
+        .substitutable {
+            text-decoration: underline;
+            text-decoration-style: solid;
+            text-decoration-color: #fbbf24; /* Tailwind yellow-400 */
+            text-decoration-thickness: 3px;
+            text-underline-offset: 4px;
+            color: #fde047; /* Tailwind yellow-300 */
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 relative">
+
+    <!-- 메인 화면으로 돌아가기 화살표 -->
+    <a href="/" title="메인 화면으로" class="absolute top-4 left-4 md:top-8 md:left-8 flex items-center text-gray-400 hover:text-white transition duration-200 cursor-pointer z-10">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 md:mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        <span class="hidden md:inline font-bold text-lg">메인으로</span>
+    </a>
+
+    <header class="text-center mb-8 mt-12 md:mt-0">
+        <h1 class="text-4xl md:text-5xl font-extrabold text-blue-400 mb-2 drop-shadow-lg">영암중 3학년 하루한줄 글쓰기 영단어</h1>
+        <p class="text-gray-400 text-lg">알파벳을 누르면 전체 단어 중 랜덤으로 2개의 단어와 예문이 나타납니다!</p>
+        <button id="resetBtn" class="mt-4 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition duration-200">
+            게임 초기화
+        </button>
+    </header>
+
+    <main class="flex-grow flex flex-col items-center w-full">
+        <!-- 알파벳 그리드 -->
+        <div id="alphabetGrid" class="jeopardy-grid">
+            <!-- 알파벳 카드가 JS로 생성됨 -->
+        </div>
+
+        <!-- 게임 상태 (남은 단어 등) -->
+        <div id="statusContainer" class="w-full max-w-4xl shadow-lg border border-gray-700 mb-8">
+            <h2 class="text-2xl font-bold mb-4 text-blue-300 border-b border-gray-600 pb-2">사용된 단어 목록 (<span id="usedWordCount">0</span>)</h2>
+            <div id="usedWordsList" class="flex flex-wrap gap-2">
+                <!-- 사용된 단어 태그가 여기에 표시됨 -->
+                <p class="text-gray-500 italic text-sm w-full">아직 사용된 단어가 없습니다.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- 모달 -->
+    <div id="wordModal">
+        <div class="modal-content border-2 border-blue-500">
+            <span class="close-btn" id="closeModalBtn">&times;</span>
+            <h2 class="text-2xl font-bold text-yellow-500 mb-6 border-b-2 border-gray-600 pb-2 inline-block">오늘의 단어</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
+                <!-- Word Card 1 -->
+                <div id="card1" class="bg-gray-700 p-6 rounded-lg shadow-inner flex flex-col justify-between">
+                    <div>
+                        <p class="text-gray-400 mb-2 font-semibold tracking-wider">WORD 1</p>
+                        <div id="word1" class="word-display">Word</div>
+                        <div id="meaning1" class="word-meaning mb-4 font-medium">뜻</div>
+                    </div>
+                    <div id="example1" class="text-lg text-gray-200 bg-gray-800 p-4 rounded text-left leading-relaxed shadow-inner break-keep border-l-4 border-blue-400">
+                        <!-- 예문이 여기에 들어갑니다 -->
+                    </div>
+                </div>
+                
+                <!-- Word Card 2 -->
+                <div id="card2" class="bg-gray-700 p-6 rounded-lg shadow-inner flex flex-col justify-between">
+                    <div>
+                        <p class="text-gray-400 mb-2 font-semibold tracking-wider">WORD 2</p>
+                        <div id="word2" class="word-display">Word</div>
+                        <div id="meaning2" class="word-meaning mb-4 font-medium">뜻</div>
+                    </div>
+                    <div id="example2" class="text-lg text-gray-200 bg-gray-800 p-4 rounded text-left leading-relaxed shadow-inner break-keep border-l-4 border-blue-400">
+                        <!-- 예문이 여기에 들어갑니다 -->
+                    </div>
+                </div>
+            </div>
+            
+            <button id="nextBtn" class="mt-8 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-10 rounded-full text-lg transition duration-200 shadow-lg">
+                확인 완료
+            </button>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * 영암중 3학년 5,6,7,8과 단어 리스트 및 예문
+         * substitutable 클래스가 적용된 부분은 학생들이 다른 단어로 바꿔쓸 수 있는 응용 구역입니다.
+         */
+        const rawWordList = [
+            // Lesson 5
+            { word: "arrest", meaning: "체포하다", example: "Why was <span class='substitutable'>the man</span> arrested last Wednesday?" },
+            { word: "celebrate", meaning: "기념하다, 축하하다", example: "A lot of people came out to the street and celebrated <span class='substitutable'>the New Year</span>." },
+            { word: "charge", meaning: "기소, 혐의", example: "He was arrested on the charge of <span class='substitutable'>robbery</span>." },
+            { word: "copy", meaning: "(책) 한부, 베끼다, 복사하다", example: "Will you send me a copy of <span class='substitutable'>Ken Kuller's new books</span>?" },
+            { word: "government", meaning: "정부, 정권", example: "The government tries to solve <span class='substitutable'>many social problems</span>." },
+            { word: "graduation", meaning: "졸업", example: "She plans to study <span class='substitutable'>abroad</span> after graduation." },
+            { word: "harsh", meaning: "가혹한, 혹독한", example: "Animals had to endure a harsh <span class='substitutable'>winter</span>." },
+            { word: "hometown", meaning: "고향", example: "He visits his hometown every fourth <span class='substitutable'>Sunday</span> of the month." },
+            { word: "independence", meaning: "독립", example: "The U.S. gained independence from <span class='substitutable'>the UK</span> on July 4, 1776." },
+            { word: "literary", meaning: "문학의, 문학적인", example: "His poem was published in a literary <span class='substitutable'>magazine</span>." },
+            { word: "literature", meaning: "문학", example: "<span class='substitutable'>William Shakespeare</span> is an important person in the history of English literature." },
+            { word: "loneliness", meaning: "외로움, 고독", example: "<span class='substitutable'>The greedy man</span> will suffer from loneliness in the end." },
+            { word: "longing", meaning: "동경, 갈망", example: "She expressed her longing for <span class='substitutable'>success</span> in her talk show." },
+            { word: "poem", meaning: "(한 편의) 시", example: "Several of his poems have only <span class='substitutable'>two</span> lines." },
+            { word: "poet", meaning: "시인", example: "<span class='substitutable'>William Shakespeare</span> was a poet as well as a playwright." },
+            { word: "poetry", meaning: "시", example: "Poetry has rhythm like <span class='substitutable'>music</span>." },
+            { word: "publish", meaning: "출판하다", example: "His poetry book was first published in <span class='substitutable'>2014</span>." },
+            { word: "publication", meaning: "출판, 발행", example: "He's looking forward to the publication of <span class='substitutable'>his son's picture book</span>." },
+            { word: "rare", meaning: "희귀한", example: "The zoo was congratulated on the birth of a rare <span class='substitutable'>white tiger</span>." },
+            { word: "remain", meaning: "남아 있다", example: "My grandfather remained <span class='substitutable'>a farmer</span> for the rest of his life." },
+            { word: "treatment", meaning: "대우, 처리", example: "I want <span class='substitutable'>fair</span> treatment." },
+            { word: "by hand", meaning: "손으로, 직접", example: "<span class='substitutable'>This sweater</span> was knitted by hand." },
+            { word: "hang out with", meaning: "~와 시간을 보내다", example: "Teens like to hang out with <span class='substitutable'>their friends</span>." },
+            { word: "in a hurry", meaning: "서둘러, 급히", example: "She ate <span class='substitutable'>toast</span> in a hurry and went out." },
+            { word: "take part in", meaning: "~에 참가하다", example: "I took part in <span class='substitutable'>the 10 km marathon</span>." },
+
+            // Lesson 6
+            { word: "additional", meaning: "추가의", example: "If you buy <span class='substitutable'>this product</span>, you will be given an additional one for free." },
+            { word: "common", meaning: "(마을의) 공유지, 공원", example: "<span class='substitutable'>My parents</span> often take a walk on the common." },
+            { word: "fill", meaning: "채우다", example: "Clara filled her cup with <span class='substitutable'>water</span>." },
+            { word: "forest", meaning: "숲", example: "There are many different flowers in the forest in <span class='substitutable'>spring</span>." },
+            { word: "grassland", meaning: "풀밭, 초지", example: "Several <span class='substitutable'>horses</span> are running on the grassland." },
+            { word: "graze", meaning: "풀을 뜯다", example: "Lots of <span class='substitutable'>sheep</span> are grazing on the field." },
+            { word: "lesson", meaning: "교훈", example: "Tim learned a valuable lesson from <span class='substitutable'>the book</span>." },
+            { word: "lie", meaning: "놓여 있다, 있다", example: "The town lies by <span class='substitutable'>the river</span>." },
+            { word: "luckily", meaning: "운 좋게", example: "Luckily, Sam found an empty seat on <span class='substitutable'>the bus</span>." },
+            { word: "notice", meaning: "알아채다, 주목하다", example: "Ken noticed <span class='substitutable'>his wallet</span> was missing." },
+            { word: "plenty", meaning: "풍부한 양", example: "There are plenty of <span class='substitutable'>eggs</span> in the fridge." },
+            { word: "population", meaning: "인구, 개체 수", example: "The population in <span class='substitutable'>large cities</span> increases every year." },
+            { word: "resource", meaning: "자원", example: "Some countries are rich in <span class='substitutable'>natural resources</span>." },
+            { word: "tip", meaning: "조언", example: "Hajin got some tips on <span class='substitutable'>the project</span> from a friend." },
+            { word: "value", meaning: "소중히 여기다, 가치", example: "What my father values the most is <span class='substitutable'>his family</span>." },
+            { word: "village", meaning: "마일", example: "There is a small village in <span class='substitutable'>the country</span>." },
+            { word: "villager", meaning: "마을 사람", example: "The villagers wanted to build <span class='substitutable'>a community center</span> there." },
+            { word: "at last", meaning: "마침내, 결국", example: "After <span class='substitutable'>a long trip</span>, Liz is home at last." },
+            { word: "be allowed to", meaning: "~하는 것이 허용되다", example: "Reporters were allowed to <span class='substitutable'>ask questions</span> about the news." },
+            { word: "be full of", meaning: "~으로 가득 차다", example: "The gym is full of <span class='substitutable'>students</span>." },
+            { word: "break a rule", meaning: "규칙을 어기다", example: "Those who break a rule must be <span class='substitutable'>punished</span>." },
+            { word: "by tradition", meaning: "전통에 따라", example: "Koreans visit <span class='substitutable'>their relatives</span> on New Year's Day by tradition." },
+            { word: "in secret", meaning: "몰래, 비밀리에", example: "The boy slipped out of <span class='substitutable'>his room</span> in secret." },
+            { word: "in the middle of", meaning: "~의 가운데에", example: "There is a large park in the middle of <span class='substitutable'>the city</span>." },
+            { word: "make matters worse", meaning: "엎친 데 덮친 격으로", example: "Leo was late for school. To make matters worse, he left <span class='substitutable'>his report</span> at home." },
+
+            // Lesson 7
+            { word: "active", meaning: "활동 중인", example: "There are many active volcanoes in <span class='substitutable'>Japan</span>." },
+            { word: "crop", meaning: "농산물", example: "<span class='substitutable'>Rice</span> is the main crop of the country." },
+            { word: "destroy", meaning: "파괴하다", example: "<span class='substitutable'>The war</span> is bad because it destroys everything." },
+            { word: "dust", meaning: "먼지", example: "<span class='substitutable'>The desk</span> was covered in dust." },
+            { word: "earthquake", meaning: "지진", example: "The earthquake destroyed <span class='substitutable'>60 percent</span> of the houses and buildings in the city." },
+            { word: "effect", meaning: "영향, 결과, 효과", example: "The effect of <span class='substitutable'>physical exercise</span> on the brain is great." },
+            { word: "erupt", meaning: "분출하다", example: "When we arrived at <span class='substitutable'>the island</span>, the volcano started to erupt." },
+            { word: "flat", meaning: "납작한, 평평한", example: "Pita is a kind of flat bread people in <span class='substitutable'>Turkey and Greece</span> usually enjoy." },
+            { word: "locate", meaning: "~의 위치를 찾아내다", example: "The app helps you locate <span class='substitutable'>your child</span>." },
+            { word: "occur", meaning: "일어나다, 발생하다", example: "<span class='substitutable'>The car accident</span> occurred in the middle of the road." },
+            { word: "overnight", meaning: "하룻밤 사이에", example: "<span class='substitutable'>The traveler</span> is looking for a place to stay overnight." },
+            { word: "planet", meaning: "행성", example: "There may be <span class='substitutable'>life</span> on other planets." },
+            { word: "prevent", meaning: "막다, 예방하다", example: "If you want to prevent <span class='substitutable'>car accidents</span>, do not use your phone while driving." },
+            { word: "ring", meaning: "고리, 반지", example: "The children sat in a ring around <span class='substitutable'>their teacher</span>." },
+            { word: "scenery", meaning: "경치", example: "She stopped her car to enjoy the <span class='substitutable'>beautiful</span> scenery." },
+            { word: "sudden", meaning: "갑작스러운", example: "He canceled <span class='substitutable'>the trip</span> because of his sudden illness." },
+            { word: "threaten", meaning: "위협하다", example: "The thief threatened the shopkeeper and stole <span class='substitutable'>cash</span>." },
+            { word: "volcano", meaning: "화산", example: "Volcanoes are major tourist attractions in <span class='substitutable'>the region</span>." },
+            { word: "volume", meaning: "부피, 용적", example: "Which of these <span class='substitutable'>bottles</span> has the greater volume?" },
+            { word: "do harm", meaning: "해를 입히다", example: "Strong sunlight does harm to <span class='substitutable'>your skin and eyes</span>." },
+            { word: "get hurt", meaning: "다치다", example: "She got hurt during <span class='substitutable'>a soccer game</span>." },
+            { word: "have in common", meaning: "공통적으로 가지다", example: "<span class='substitutable'>My twin sister and I</span> have lots of things in common." },
+            { word: "in harmony with", meaning: "~와 조화를 이루어", example: "We should live in harmony with <span class='substitutable'>nature</span>." },
+            { word: "name after", meaning: "~을 따서 이름을 짓다", example: "Paul was named after <span class='substitutable'>his father</span>." },
+            { word: "solar system", meaning: "태양계", example: "There are <span class='substitutable'>eight</span> planets in our solar system." },
+
+            // Lesson 8
+            { word: "banner", meaning: "현수막", example: "A banner was hung over the street to advertise <span class='substitutable'>the new museum</span>." },
+            { word: "challenging", meaning: "도전적인", example: "<span class='substitutable'>Climbing the mountain</span> was challenging for her, but she finally made it." },
+            { word: "chase", meaning: "(꿈, 목표 등을) 좇다, 뒤쫓다", example: "I hope this year you chase <span class='substitutable'>all your dreams</span>." },
+            { word: "connect", meaning: "연결하다", example: "The two separate islands were connected by <span class='substitutable'>a bridge</span>." },
+            { word: "decision", meaning: "결정, 판단", example: "She has made the decision to be <span class='substitutable'>a fire fighter</span>." },
+            { word: "found", meaning: "설립하다", example: "The hospital was founded to treat <span class='substitutable'>children</span> who need special care." },
+            { word: "impatient", meaning: "참지 못하는, 짜증난", example: "The longer they <span class='substitutable'>waited</span>, the more impatient they became." },
+            { word: "include", meaning: "포함하다", example: "The price of all sandwiches in our store includes <span class='substitutable'>a drink</span>." },
+            { word: "miss", meaning: "놓치다, 지나치다", example: "The player ran as fast as he could, but he missed <span class='substitutable'>the ball</span>." },
+            { word: "mailbox", meaning: "우편함", example: "He checked his mailbox <span class='substitutable'>daily</span>, hoping for a letter from his daughter." },
+            { word: "main", meaning: "주요한, 중요한", example: "He read <span class='substitutable'>the paragraph</span> over and over to catch the main idea." },
+            { word: "opportunity", meaning: "기회", example: "<span class='substitutable'>Traveling</span> provided him with many opportunities to meet people from around the world." },
+            { word: "read", meaning: "~라고 적혀 있다", example: "The sign on the bench read \"<span class='substitutable'>Wet Paint</span>.\"" },
+            { word: "regret", meaning: "후회하다", example: "If you don't <span class='substitutable'>exercise regularly</span>, you might live to regret it." },
+            { word: "rest", meaning: "나머지", example: "I'm full. I'd like to leave the rest of <span class='substitutable'>the cake</span> for tomorrow." },
+            { word: "serious", meaning: "심각한, 진지한", example: "Recently, <span class='substitutable'>air pollution</span> has become the most serious environmental problem to be solved." },
+            { word: "suit", meaning: "정장", example: "My father always wore a suit and <span class='substitutable'>tie</span> to work." },
+            { word: "tryout", meaning: "심사, 테스트", example: "My sister has tryouts for <span class='substitutable'>the school soccer team</span> today." },
+            { word: "worth", meaning: "~할 가치가 있는", example: "The writer's novel is worth <span class='substitutable'>reading</span> over and over again." },
+            { word: "be ashamed of", meaning: "~을 부끄러워하다", example: "You should be ashamed of <span class='substitutable'>what you did wrong</span>." },
+            { word: "even if", meaning: "비록 ~하더라도", example: "Even if <span class='substitutable'>you don't like it</span>, you must do it." },
+            { word: "go after", meaning: "~을 추구하다, 얻기 위해 노력하다", example: "Go after <span class='substitutable'>the job you really want</span>, and you'll become the person you want to be." },
+            { word: "go by", meaning: "지나가다, 흐르다", example: "As time went by, the leaves of the tree turned <span class='substitutable'>red</span>." },
+            { word: "not anymore", meaning: "더 이상 ~ 않다", example: "She used to live in <span class='substitutable'>a big city</span>, but she doesn't live there anymore." },
+            { word: "over and over", meaning: "반복해서", example: "She practiced <span class='substitutable'>the dance</span> over and over until it was perfect." }
+        ];
+
+        // 중복 방지 로직 (소문자 기준)
+        const initialWordList = Array.from(
+            new Map(rawWordList.map(item => [item.word.toLowerCase(), item])).values()
+        );
+
+        let wordList = []; // 남은 단어 목록
+        let usedWords = []; // 사용된 단어 목록
+        let clickedAlphabets = new Set(); // 클릭된 알파벳 카드 추적
+
+        const alphabetGrid = document.getElementById('alphabetGrid');
+        const modal = document.getElementById('wordModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const usedWordsListContainer = document.getElementById('usedWordsList');
+        const usedWordCountSpan = document.getElementById('usedWordCount');
+
+        function initGame() {
+            wordList = JSON.parse(JSON.stringify(initialWordList));
+            usedWords = [];
+            clickedAlphabets.clear();
+            
+            renderGrid();
+            updateUsedWordsDisplay();
+        }
+
+        function renderGrid() {
+            alphabetGrid.innerHTML = '';
+            // A부터 Z까지 카드 생성
+            for (let i = 65; i <= 90; i++) {
+                const letter = String.fromCharCode(i);
+                const card = document.createElement('div');
+                card.className = 'alphabet-card';
+                card.textContent = letter;
+                
+                // 한 번 클릭된 카드거나 단어가 모두 소진되었으면 비활성화
+                if (clickedAlphabets.has(letter) || wordList.length === 0) {
+                    card.classList.add('disabled');
+                } else {
+                    card.addEventListener('click', () => handleAlphabetClick(letter));
+                }
+                
+                alphabetGrid.appendChild(card);
+            }
+        }
+
+        function handleAlphabetClick(letter) {
+            // 이미 클릭했거나 남은 단어가 없으면 무시
+            if (clickedAlphabets.has(letter) || wordList.length === 0) return;
+
+            // 전체 남은 단어를 완전히 섞기
+            shuffleArray(wordList);
+
+            // 섞인 목록에서 앞에서 최대 2개 뽑기
+            const selectedCount = Math.min(2, wordList.length);
+            const selectedWords = wordList.splice(0, selectedCount);
+            
+            usedWords.push(...selectedWords);
+            clickedAlphabets.add(letter); // 현재 알파벳 클릭 처리
+
+            showModal(selectedWords);
+            renderGrid(); // 카드 상태 갱신 (선택한 알파벳 및 소진 상태)
+            updateUsedWordsDisplay();
+        }
+
+        // 배열 랜덤 섞기
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function showModal(words) {
+            const card1 = document.getElementById('card1');
+            const w1Div = document.getElementById('word1');
+            const m1Div = document.getElementById('meaning1');
+            const e1Div = document.getElementById('example1');
+            
+            const card2 = document.getElementById('card2');
+            const w2Div = document.getElementById('word2');
+            const m2Div = document.getElementById('meaning2');
+            const e2Div = document.getElementById('example2');
+            
+            // 첫 번째 단어 세팅
+            if (words[0]) {
+                w1Div.textContent = words[0].word;
+                m1Div.textContent = words[0].meaning;
+                e1Div.innerHTML = words[0].example;
+                card1.style.display = 'flex';
+            } else {
+                card1.style.display = 'none';
+            }
+
+            // 두 번째 단어 세팅
+            if (words[1]) {
+                w2Div.textContent = words[1].word;
+                m2Div.textContent = words[1].meaning;
+                e2Div.innerHTML = words[1].example;
+                card2.style.display = 'flex';
+            } else {
+                card2.style.display = 'none';
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        function updateUsedWordsDisplay() {
+            usedWordCountSpan.textContent = usedWords.length;
+            
+            if (usedWords.length === 0) {
+                usedWordsListContainer.innerHTML = '<p class="text-gray-500 italic text-sm w-full">아직 사용된 단어가 없습니다.</p>';
+                return;
+            }
+
+            usedWordsListContainer.innerHTML = '';
+            
+            const sortedUsedWords = [...usedWords].sort((a, b) => a.word.localeCompare(b.word));
+
+            sortedUsedWords.forEach(item => {
+                const tag = document.createElement('span');
+                tag.className = 'bg-gray-700 text-gray-300 text-sm font-medium mr-2 mb-2 px-3 py-1 rounded-full border border-gray-600 flex flex-col items-center';
+                tag.innerHTML = `<span class="text-yellow-400 font-bold">${item.word}</span><span class="text-xs text-gray-400 mt-1">${item.meaning}</span>`;
+                usedWordsListContainer.appendChild(tag);
+            });
+        }
+
+        closeModalBtn.addEventListener('click', closeModal);
+        nextBtn.addEventListener('click', closeModal);
+        resetBtn.addEventListener('click', () => {
+            if(confirm("정말 게임을 초기화 하시겠습니까? 진행 상황이 모두 사라집니다.")) {
+                initGame();
+            }
+        });
+
+        window.addEventListener('click', (event) => {
+            if (event.target == modal) {
+                closeModal();
+            }
+        });
+
+        initGame();
+    </script>
+</body>
+</html>
