@@ -284,7 +284,7 @@
             { word: "step", meaning: "단계", example: "Go to the <span class='substitutable'>next</span> step." },
             { word: "strawberry", meaning: "딸기", example: "The strawberry was <span class='substitutable'>very sweet</span>." },
             { word: "thick", meaning: "두꺼운", example: "<span class='substitutable'>My glasses</span> are thick." },
-            { word: "thin", meaning: "얇은", example: "<span class='substitutable'>This book</span> is thin." },
+            { word: "thin", 단어: "얇은", example: "<span class='substitutable'>This book</span> is thin." },
             { word: "tip", meaning: "조언", example: "<span class='substitutable'>I'll</span> give you some tips." },
             { word: "wrap", meaning: "싸다, 포장하다", example: "She wrapped <span class='substitutable'>the present</span>." },
 
@@ -324,6 +324,7 @@
         let wordList = []; // 남은 단어 목록
         let usedWords = []; // 사용된 단어 목록
         let clickedAlphabets = new Set(); // 클릭된 알파벳 카드 추적
+        const storageKeyPrefix = 'yeongam_voca_grade1_';
 
         const alphabetGrid = document.getElementById('alphabetGrid');
         const modal = document.getElementById('wordModal');
@@ -333,8 +334,40 @@
         const usedWordsListContainer = document.getElementById('usedWordsList');
         const usedWordCountSpan = document.getElementById('usedWordCount');
 
+        function loadGameData() {
+            const savedWordList = localStorage.getItem(storageKeyPrefix + 'wordList');
+            const savedUsedWords = localStorage.getItem(storageKeyPrefix + 'usedWords');
+            const savedClickedAlphabets = localStorage.getItem(storageKeyPrefix + 'clickedAlphabets');
+
+            if (savedWordList && savedUsedWords && savedClickedAlphabets) {
+                wordList = JSON.parse(savedWordList);
+                usedWords = JSON.parse(savedUsedWords);
+                clickedAlphabets = new Set(JSON.parse(savedClickedAlphabets));
+            } else {
+                // 저장된 데이터가 없으면 초기화
+                wordList = JSON.parse(JSON.stringify(initialWordList));
+                usedWords = [];
+                clickedAlphabets.clear();
+            }
+        }
+
+        function saveGameData() {
+            localStorage.setItem(storageKeyPrefix + 'wordList', JSON.stringify(wordList));
+            localStorage.setItem(storageKeyPrefix + 'usedWords', JSON.stringify(usedWords));
+            localStorage.setItem(storageKeyPrefix + 'clickedAlphabets', JSON.stringify(Array.from(clickedAlphabets)));
+        }
+
         function initGame() {
-            // 원본 데이터 복사 (깊은 복사)
+            loadGameData();
+            renderGrid();
+            updateUsedWordsDisplay();
+        }
+
+        function resetGame() {
+            localStorage.removeItem(storageKeyPrefix + 'wordList');
+            localStorage.removeItem(storageKeyPrefix + 'usedWords');
+            localStorage.removeItem(storageKeyPrefix + 'clickedAlphabets');
+            
             wordList = JSON.parse(JSON.stringify(initialWordList));
             usedWords = [];
             clickedAlphabets.clear();
@@ -378,6 +411,8 @@
             
             // 클릭된 알파벳 기록
             clickedAlphabets.add(letter);
+
+            saveGameData(); // 데이터 저장
 
             showModal(selectedWords);
             renderGrid(); // 버튼 상태 업데이트
@@ -455,7 +490,7 @@
         nextBtn.addEventListener('click', closeModal);
         resetBtn.addEventListener('click', () => {
             if(confirm("정말 게임을 초기화 하시겠습니까? 진행 상황이 모두 사라집니다.")) {
-                initGame();
+                resetGame();
             }
         });
 
