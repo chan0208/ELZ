@@ -3,66 +3,685 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>영암중 하루한줄 글쓰기 영단어</title>
+    <title>영암중학교 하루한줄 글쓰기 영단어</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        
         body {
-            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
-            background-color: #f0f4f8;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: #0f172a; /* Slate 900 */
+            color: #f8fafc;
+            min-height: 100vh;
         }
-        .container {
-            background-color: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-            text-align: center;
-            max-width: 400px;
-            width: 80%;
-        }
-        h1 {
-            color: #2c3e50;
-            font-size: 1.5rem;
-            margin-bottom: 30px;
-            line-height: 1.4;
-        }
-        .grade-btn {
-            display: block;
+
+        .jeopardy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+            gap: 0.875rem;
             width: 100%;
-            padding: 15px;
-            margin-bottom: 15px;
-            background-color: #3498db;
-            color: white;
-            text-decoration: none;
-            font-size: 1.2rem;
-            font-weight: bold;
-            border-radius: 10px;
-            transition: background-color 0.2s, transform 0.1s;
-            box-sizing: border-box;
         }
-        .grade-btn:hover {
-            background-color: #2980b9;
+
+        .alphabet-card {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            border: 2px solid #475569;
+            color: #f1f5f9;
+            font-size: 2rem;
+            font-weight: 800;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 90px;
+            cursor: pointer;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
         }
-        .grade-btn:active {
-            transform: scale(0.98);
+
+        .alphabet-card:hover:not(.disabled) {
+            transform: translateY(-4px) scale(1.03);
+            border-color: #38bdf8;
+            box-shadow: 0 10px 20px -5px rgba(56, 189, 248, 0.4);
+            color: #38bdf8;
         }
-        .grade-btn.grade2 { background-color: #2ecc71; }
-        .grade-btn.grade2:hover { background-color: #27ae60; }
-        .grade-btn.grade3 { background-color: #9b59b6; }
-        .grade-btn.grade3:hover { background-color: #8e44ad; }
+
+        .alphabet-card.disabled {
+            background: #1e293b;
+            border-color: #334155;
+            color: #475569;
+            cursor: not-allowed;
+            opacity: 0.6;
+            text-decoration: line-through;
+            box-shadow: none;
+        }
+
+        .substitutable {
+            text-decoration: underline;
+            text-decoration-style: solid;
+            text-decoration-color: #f59e0b;
+            text-decoration-thickness: 3px;
+            text-underline-offset: 4px;
+            color: #fbbf24;
+            font-weight: 700;
+            padding: 0 4px;
+            background-color: rgba(245, 158, 11, 0.15);
+            border-radius: 4px;
+        }
+
+        @keyframes modalPop {
+            0% { transform: scale(0.9) translateY(20px); opacity: 0; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        .animate-pop {
+            animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1e293b;
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>영암중학교<br>하루 한 줄 글쓰기 영단어 ✍️</h1>
-        <a href="./grade1.html" class="grade-btn">1학년 입장하기</a>
-        <a href="./grade2.html" class="grade-btn grade2">2학년 입장하기</a>
-        <a href="./grade3.html" class="grade-btn grade3">3학년 입장하기</a>
+<body class="flex flex-col min-h-screen custom-scrollbar selection:bg-sky-500 selection:text-white">
+
+    <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-30">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">✍️</span>
+                <div>
+                    <h1 class="font-extrabold text-lg md:text-xl bg-gradient-to-r from-sky-400 to-indigo-300 bg-clip-text text-transparent">
+                        영암중 하루한줄 글쓰기
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium hidden sm:block">학급별 맞춤 영단어 및 문장 응용 학습 시스템</p>
+                </div>
+            </div>
+            <div id="headerClassBadge" class="hidden">
+                <span id="currentClassText" class="px-3 py-1 bg-indigo-950/80 border border-indigo-500/30 text-indigo-300 rounded-full text-xs font-bold shadow-sm">
+                    3학년 1반
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-6xl w-full mx-auto p-4 md:p-6">
+        
+        <!-- ================= VIEW 1: CLASS SELECTION (HOME) ================= -->
+        <section id="homeView" class="block animate-fade-in py-6">
+            <div class="text-center max-w-2xl mx-auto mb-10 space-y-3">
+                <h2 class="text-3xl md:text-4xl font-black text-white tracking-tight">
+                    학급을 선택하세요
+                </h2>
+                <p class="text-slate-400 text-sm md:text-base leading-relaxed">
+                    본인의 학년과 반을 선택하여 오늘 공부할 알맞은 영단어를 뽑고,<br class="hidden sm:inline"> 자신만의 영문장을 완성해보세요!
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                <!-- Grade 1 Card -->
+                <div class="bg-slate-800/80 rounded-2xl border border-slate-700 p-6 flex flex-col justify-between shadow-xl hover:border-emerald-500/50 transition duration-300">
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-xs font-bold">1학년</span>
+                            <span class="text-2xl">🌱</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-2">1학년 영단어</h3>
+                        <p class="text-slate-400 text-xs mb-6">기초 어휘 및 실생활 응용 예문 연습</p>
+                    </div>
+
+                    <div class="space-y-3">
+                        <button onclick="enterClass('g1c1')" class="w-full bg-slate-700/80 hover:bg-emerald-600 text-white font-bold py-3 px-4 rounded-xl transition duration-200 flex items-center justify-between group shadow-md">
+                            <span>1학년 1반 입장하기</span>
+                            <span id="progress-g1c1" class="text-xs bg-slate-800 group-hover:bg-emerald-700 px-2 py-1 rounded text-slate-300 font-normal">0/26</span>
+                        </button>
+                        <button onclick="enterClass('g1c2')" class="w-full bg-slate-700/80 hover:bg-emerald-600 text-white font-bold py-3 px-4 rounded-xl transition duration-200 flex items-center justify-between group shadow-md">
+                            <span>1학년 2반 입장하기</span>
+                            <span id="progress-g1c2" class="text-xs bg-slate-800 group-hover:bg-emerald-700 px-2 py-1 rounded text-slate-300 font-normal">0/26</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Grade 2 Card -->
+                <div class="bg-slate-800/80 rounded-2xl border border-slate-700 p-6 flex flex-col justify-between shadow-xl hover:border-sky-500/50 transition duration-300">
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="px-3 py-1 bg-sky-500/10 text-sky-400 border border-sky-500/20 rounded-lg text-xs font-bold">2학년</span>
+                            <span class="text-2xl">🌿</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-2">2학년 영단어</h3>
+                        <p class="text-slate-400 text-xs mb-6">중급 어휘 표현 및 핵심 구문 활용</p>
+                    </div>
+
+                    <div class="space-y-3">
+                        <button onclick="enterClass('g2c1')" class="w-full bg-slate-700/80 hover:bg-sky-600 text-white font-bold py-3 px-4 rounded-xl transition duration-200 flex items-center justify-between group shadow-md">
+                            <span>2학년 1반 입장하기</span>
+                            <span id="progress-g2c1" class="text-xs bg-slate-800 group-hover:bg-sky-700 px-2 py-1 rounded text-slate-300 font-normal">0/26</span>
+                        </button>
+                        <button onclick="enterClass('g2c2')" class="w-full bg-slate-700/80 hover:bg-sky-600 text-white font-bold py-3 px-4 rounded-xl transition duration-200 flex items-center justify-between group shadow-md">
+                            <span>2학년 2반 입장하기</span>
+                            <span id="progress-g2c2" class="text-xs bg-slate-800 group-hover:bg-sky-700 px-2 py-1 rounded text-slate-300 font-normal">0/26</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Grade 3 Card -->
+                <div class="bg-slate-800/80 rounded-2xl border border-slate-700 p-6 flex flex-col justify-between shadow-xl hover:border-purple-500/50 transition duration-300">
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="px-3 py-1 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-lg text-xs font-bold">3학년</span>
+                            <span class="text-2xl">🌳</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-2">3학년 영단어</h3>
+                        <p class="text-slate-400 text-xs mb-6">5~8과 핵심 심화 단어 및 하루 한줄 작문</p>
+                    </div>
+
+                    <div class="space-y-3">
+                        <button onclick="enterClass('g3c1')" class="w-full bg-slate-700/80 hover:bg-purple-600 text-white font-bold py-3 px-4 rounded-xl transition duration-200 flex items-center justify-between group shadow-md">
+                            <span>3학년 1반 입장하기</span>
+                            <span id="progress-g3c1" class="text-xs bg-slate-800 group-hover:bg-purple-700 px-2 py-1 rounded text-slate-300 font-normal">0/26</span>
+                        </button>
+                        <button onclick="enterClass('g3c2')" class="w-full bg-slate-700/80 hover:bg-purple-600 text-white font-bold py-3 px-4 rounded-xl transition duration-200 flex items-center justify-between group shadow-md">
+                            <span>3학년 2반 입장하기</span>
+                            <span id="progress-g3c2" class="text-xs bg-slate-800 group-hover:bg-purple-700 px-2 py-1 rounded text-slate-300 font-normal">0/26</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= VIEW 2: GAME BOARD VIEW ================= -->
+        <section id="gameView" class="hidden animate-fade-in space-y-6">
+            
+            <!-- Navigation Control Bar -->
+            <div class="flex flex-wrap items-center justify-between gap-4 bg-slate-800/50 p-4 rounded-2xl border border-slate-700">
+                <button onclick="goHome()" class="flex items-center gap-2 text-slate-300 hover:text-white bg-slate-700/60 hover:bg-slate-700 px-4 py-2 rounded-xl transition font-medium text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    학급 목록으로
+                </button>
+
+                <div class="text-center">
+                    <h2 id="boardTitle" class="text-xl md:text-2xl font-bold text-sky-400">3학년 1반 하루한줄 영단어</h2>
+                </div>
+
+                <button onclick="openResetModal()" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 px-4 py-2 rounded-xl text-xs font-bold transition">
+                    반 진행 상황 초기화
+                </button>
+            </div>
+
+            <!-- Main Interactive Jeopardy Board -->
+            <div class="bg-slate-800/80 rounded-2xl border border-slate-700 p-6 shadow-xl space-y-4">
+                <p class="text-center text-slate-300 text-sm md:text-base font-medium">
+                    🔤 원하시는 <span class="text-amber-400 font-bold">알파벳 카드</span>를 선택하면 오늘의 영단어 2개와 예문이 추출됩니다.
+                </p>
+
+                <div id="alphabetGrid" class="jeopardy-grid pt-2">
+                    <!-- Dynamic Alphabet Cards Generated Here -->
+                </div>
+            </div>
+
+            <!-- Used Words Tracking Panel -->
+            <div class="bg-slate-800/80 rounded-2xl border border-slate-700 p-6 shadow-xl space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+                    <h3 class="text-lg font-bold text-sky-300 flex items-center gap-2">
+                        <span>📚</span> 누적 공부한 단어 목록
+                    </h3>
+                    <span class="text-xs bg-sky-950 text-sky-400 px-3 py-1 rounded-full border border-sky-800 font-bold">
+                        <span id="usedWordCount">0</span>개 완료
+                    </span>
+                </div>
+
+                <div id="usedWordsList" class="flex flex-wrap gap-2 pt-1 min-h-[60px]">
+                    <p class="text-slate-500 italic text-sm w-full py-2">아직 학습한 단어가 없습니다. 알파벳 카드를 눌러 공부를 시작하세요!</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ================= WORD PRESENTATION MODAL ================= -->
+    <div id="wordModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-slate-800 border-2 border-sky-500/50 rounded-2xl p-6 md:p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl relative animate-pop space-y-6">
+            
+            <button onclick="closeWordModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-2xl font-bold p-1">
+                &times;
+            </button>
+
+            <div class="text-center space-y-1 border-b border-slate-700 pb-4">
+                <span id="modalAlphabetTag" class="px-3 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-full text-xs font-extrabold uppercase">
+                    Alphabet A
+                </span>
+                <h3 class="text-2xl font-black text-amber-400">오늘의 하루한줄 영단어</h3>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Word Card 1 -->
+                <div id="card1" class="bg-slate-900/90 rounded-xl p-5 border border-slate-700 flex flex-col justify-between space-y-4 shadow-inner">
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-extrabold text-sky-400 tracking-wider uppercase">WORD 01</span>
+                            <button onclick="speakWord('word1')" class="text-slate-400 hover:text-sky-400 p-1 transition" title="발음 듣기">
+                                🔊
+                            </button>
+                        </div>
+                        <div id="word1" class="text-3xl font-black text-sky-300 break-words">Word</div>
+                        <div id="meaning1" class="text-base text-slate-300 font-semibold">뜻</div>
+                    </div>
+                    <div id="example1" class="text-sm md:text-base text-slate-200 bg-slate-800/80 p-4 rounded-xl leading-relaxed border-l-4 border-sky-500 shadow-sm break-keep">
+                        <!-- Example sentence -->
+                    </div>
+                </div>
+
+                <!-- Word Card 2 -->
+                <div id="card2" class="bg-slate-900/90 rounded-xl p-5 border border-slate-700 flex flex-col justify-between space-y-4 shadow-inner">
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-extrabold text-purple-400 tracking-wider uppercase">WORD 02</span>
+                            <button onclick="speakWord('word2')" class="text-slate-400 hover:text-purple-400 p-1 transition" title="발음 듣기">
+                                🔊
+                            </button>
+                        </div>
+                        <div id="word2" class="text-3xl font-black text-purple-300 break-words">Word</div>
+                        <div id="meaning2" class="text-base text-slate-300 font-semibold">뜻</div>
+                    </div>
+                    <div id="example2" class="text-sm md:text-base text-slate-200 bg-slate-800/80 p-4 rounded-xl leading-relaxed border-l-4 border-purple-500 shadow-sm break-keep">
+                        <!-- Example sentence -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-2 text-center">
+                <button onclick="closeWordModal()" class="w-full sm:w-auto bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white font-bold py-3 px-10 rounded-xl transition duration-200 shadow-lg text-base">
+                    확인 완료 (문장 작성하기)
+                </button>
+            </div>
+        </div>
     </div>
+
+    <!-- ================= CUSTOM CONFIRMATION MODAL ================= -->
+    <div id="confirmModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md w-full shadow-2xl animate-pop text-center space-y-4">
+            <div class="w-12 h-12 bg-rose-500/10 text-rose-400 rounded-full flex items-center justify-center mx-auto text-2xl">
+                ⚠️
+            </div>
+            <h3 class="text-xl font-bold text-white">학급 데이터 초기화</h3>
+            <p id="confirmModalText" class="text-sm text-slate-300 leading-relaxed">
+                정말로 이 학급의 학습 진행 상황을 초기화하시겠습니까?<br>사용한 카드와 누적 학습 단어가 삭제됩니다.
+            </p>
+            <div class="flex gap-3 pt-2">
+                <button onclick="closeConfirmModal()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold py-2.5 rounded-xl transition text-sm">
+                    취소
+                </button>
+                <button onclick="executeReset()" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl transition text-sm">
+                    초기화 실행
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const VOCAB_DATA = {
+            // Grade 1 Data
+            1: [
+                { word: "activity", meaning: "활동", example: "What is your favorite <span class='substitutable'>after-school activity</span>?" },
+                { word: "borrow", meaning: "빌리다", example: "Can I borrow your <span class='substitutable'>English book</span> for a moment?" },
+                { word: "delicious", meaning: "맛있는", example: "My mother cooked <span class='substitutable'>spaghetti</span>, and it was delicious." },
+                { word: "exciting", meaning: "흥미진진한", example: "Watching <span class='substitutable'>the soccer game</span> was very exciting." },
+                { word: "favorite", meaning: "가장 좋아하는", example: "<span class='substitutable'>Blue</span> is my favorite color." },
+                { word: "introduce", meaning: "소개하다", example: "Let me introduce <span class='substitutable'>my best friend</span> to you." },
+                { word: "practice", meaning: "연습하다", example: "He practices <span class='substitutable'>playing the guitar</span> every afternoon." },
+                { word: "remember", meaning: "기억하다", example: "I always remember to <span class='substitutable'>turn off the lights</span>." },
+                { word: "special", meaning: "특별한", example: "Today is a special day for <span class='substitutable'>our family</span>." },
+                { word: "together", meaning: "함께", example: "We walked to <span class='substitutable'>the library</span> together." },
+                { word: "understand", meaning: "이해하다", example: "Do you understand <span class='substitutable'>this grammar rule</span>?" },
+                { word: "visit", meaning: "방문하다", example: "I will visit <span class='substitutable'>my grandparents</span> this weekend." },
+                { word: "weather", meaning: "날씨", example: "The weather is very sunny in <span class='substitutable'>Yeongam</span> today." },
+                { word: "worry", meaning: "걱정하다", example: "Don't worry about <span class='substitutable'>the test</span>." },
+                { word: "health", meaning: "건강", example: "Eating <span class='substitutable'>fresh vegetables</span> is good for your health." },
+                { word: "protect", meaning: "보호하다", example: "We should protect <span class='substitutable'>the environment</span>." },
+                { word: "habit", meaning: "습관", example: "Reading <span class='substitutable'>every night</span> is a good habit." },
+                { word: "join", meaning: "가입하다, 함께하다", example: "Would you like to join <span class='substitutable'>our sports club</span>?" },
+                { word: "language", meaning: "언어", example: "Learning <span class='substitutable'>a foreign language</span> is fun." },
+                { word: "famous", meaning: "유명한", example: "This restaurant is famous for <span class='substitutable'>its delicious bakery</span>." },
+                { word: "take a picture", meaning: "사진을 찍다", example: "We took a picture in front of <span class='substitutable'>the school hall</span>." },
+                { word: "look for", meaning: "~을 찾다", example: "She is looking for <span class='substitutable'>her lost pencil case</span>." },
+                { word: "make friends", meaning: "친구를 사귀다", example: "It is easy to make friends at <span class='substitutable'>summer camp</span>." }
+            ],
+
+            // Grade 2 Data
+            2: [
+                { word: "advice", meaning: "조언", example: "My teacher gave me helpful advice on <span class='substitutable'>my worries</span>." },
+                { word: "communicate", meaning: "소통하다", example: "People communicate with each other through <span class='substitutable'>smartphones</span>." },
+                { word: "culture", meaning: "문화", example: "I want to learn more about <span class='substitutable'>Korean traditional culture</span>." },
+                { word: "experience", meaning: "경험", example: "<span class='substitutable'>Volunteering at the park</span> was a great experience." },
+                { word: "improve", meaning: "향상시키다", example: "I practice every day to improve my <span class='substitutable'>speaking skills</span>." },
+                { word: "popular", meaning: "인기 있는", example: "This song is very popular among <span class='substitutable'>teenagers</span>." },
+                { word: "relationship", meaning: "관계", example: "Trust is important for <span class='substitutable'>good friendship</span>." },
+                { word: "traditional", meaning: "전통적인", example: "They wore traditional clothes during <span class='substitutable'>Chuseok</span>." },
+                { word: "environment", meaning: "환경", example: "Recycling trash helps save <span class='substitutable'>our planet</span>." },
+                { word: "express", meaning: "표현하다", example: "He expressed his feelings through <span class='substitutable'>his drawings</span>." },
+                { word: "succeed", meaning: "성공하다", example: "If you work hard, you will succeed in <span class='substitutable'>your career</span>." },
+                { word: "confidence", meaning: "자신감", example: "Practicing in front of a mirror gives you <span class='substitutable'>confidence</span>." },
+                { word: "creative", meaning: "창의적인", example: "She came up with a creative idea for <span class='substitutable'>the science project</span>." },
+                { word: "effort", meaning: "노력", example: "His team put a lot of effort into <span class='substitutable'>winning the match</span>." },
+                { word: "patience", meaning: "인내심", example: "Fishing requires a lot of <span class='substitutable'>patience</span>." },
+                { word: "focus on", meaning: "~에 집중하다", example: "Please focus on <span class='substitutable'>what the speaker says</span>." },
+                { word: "depend on", meaning: "~에 달려있다", example: "Our outdoor trip depends on <span class='substitutable'>the weather</span>." },
+                { word: "give up", meaning: "포기하다", example: "Never give up on <span class='substitutable'>your dream</span>." },
+                { word: "take care of", meaning: "~을 돌보다", example: "I helped my mom take care of <span class='substitutable'>my younger brother</span>." }
+            ],
+
+            // Grade 3 Data (Full provided dataset)
+            3: [
+                { word: "arrest", meaning: "체포하다", example: "Why was <span class='substitutable'>the man</span> arrested last Wednesday?" },
+                { word: "celebrate", meaning: "기념하다, 축하하다", example: "A lot of people came out to the street and celebrated <span class='substitutable'>the New Year</span>." },
+                { word: "charge", meaning: "기소, 혐의", example: "He was arrested on the charge of <span class='substitutable'>robbery</span>." },
+                { word: "copy", meaning: "(책) 한부, 베끼다, 복사하다", example: "Will you send me a copy of <span class='substitutable'>Ken Kuller's new books</span>?" },
+                { word: "government", meaning: "정부, 정권", example: "The government tries to solve <span class='substitutable'>many social problems</span>." },
+                { word: "graduation", meaning: "졸업", example: "She plans to study <span class='substitutable'>abroad</span> after graduation." },
+                { word: "harsh", meaning: "가혹한, 혹독한", example: "Animals had to endure a harsh <span class='substitutable'>winter</span>." },
+                { word: "hometown", meaning: "고향", example: "He visits his hometown every fourth <span class='substitutable'>Sunday</span> of the month." },
+                { word: "independence", meaning: "독립", example: "The U.S. gained independence from <span class='substitutable'>the UK</span> on July 4, 1776." },
+                { word: "literary", meaning: "문학의, 문학적인", example: "His poem was published in a literary <span class='substitutable'>magazine</span>." },
+                { word: "literature", meaning: "문학", example: "<span class='substitutable'>William Shakespeare</span> is an important person in the history of English literature." },
+                { word: "loneliness", meaning: "외로움, 고독", example: "<span class='substitutable'>The greedy man</span> will suffer from loneliness in the end." },
+                { word: "longing", meaning: "동경, 갈망", example: "She expressed her longing for <span class='substitutable'>success</span> in her talk show." },
+                { word: "poem", meaning: "(한 편의) 시", example: "Several of his poems have only <span class='substitutable'>two</span> lines." },
+                { word: "poet", meaning: "시인", example: "<span class='substitutable'>William Shakespeare</span> was a poet as well as a playwright." },
+                { word: "poetry", meaning: "시", example: "Poetry has rhythm like <span class='substitutable'>music</span>." },
+                { word: "publish", meaning: "출판하다", example: "His poetry book was first published in <span class='substitutable'>2014</span>." },
+                { word: "publication", meaning: "출판, 발행", example: "He's looking forward to the publication of <span class='substitutable'>his son's picture book</span>." },
+                { word: "rare", meaning: "희귀한", example: "The zoo was congratulated on the birth of a rare <span class='substitutable'>white tiger</span>." },
+                { word: "remain", meaning: "남아 있다", example: "My grandfather remained <span class='substitutable'>a farmer</span> for the rest of his life." },
+                { word: "treatment", meaning: "대우, 처리", example: "I want <span class='substitutable'>fair</span> treatment." },
+                { word: "by hand", meaning: "손으로, 직접", example: "<span class='substitutable'>This sweater</span> was knitted by hand." },
+                { word: "hang out with", meaning: "~와 시간을 보내다", example: "Teens like to hang out with <span class='substitutable'>their friends</span>." },
+                { word: "in a hurry", meaning: "서둘러, 급히", example: "She ate <span class='substitutable'>toast</span> in a hurry and went out." },
+                { word: "take part in", meaning: "~에 참가하다", example: "I took part in <span class='substitutable'>the 10 km marathon</span>." },
+                { word: "additional", meaning: "추가의", example: "If you buy <span class='substitutable'>this product</span>, you will be given an additional one for free." },
+                { word: "common", meaning: "(마을의) 공유지, 공원", example: "<span class='substitutable'>My parents</span> often take a walk on the common." },
+                { word: "fill", meaning: "채우다", example: "Clara filled her cup with <span class='substitutable'>water</span>." },
+                { word: "forest", meaning: "숲", example: "There are many different flowers in the forest in <span class='substitutable'>spring</span>." },
+                { word: "grassland", meaning: "풀밭, 초지", example: "Several <span class='substitutable'>horses</span> are running on the grassland." },
+                { word: "graze", meaning: "풀을 뜯다", example: "Lots of <span class='substitutable'>sheep</span> are grazing on the field." },
+                { word: "lesson", meaning: "교훈", example: "Tim learned a valuable lesson from <span class='substitutable'>the book</span>." },
+                { word: "lie", meaning: "놓여 있다, 있다", example: "The town lies by <span class='substitutable'>the river</span>." },
+                { word: "luckily", meaning: "운 좋게", example: "Luckily, Sam found an empty seat on <span class='substitutable'>the bus</span>." },
+                { word: "notice", meaning: "알아채다, 주목하다", example: "Ken noticed <span class='substitutable'>his wallet</span> was missing." },
+                { word: "plenty", meaning: "풍부한 양", example: "There are plenty of <span class='substitutable'>eggs</span> in the fridge." },
+                { word: "population", meaning: "인구, 개체 수", example: "The population in <span class='substitutable'>large cities</span> increases every year." },
+                { word: "resource", meaning: "자원", example: "Some countries are rich in <span class='substitutable'>natural resources</span>." },
+                { word: "tip", meaning: "조언", example: "Hajin got some tips on <span class='substitutable'>the project</span> from a friend." },
+                { word: "value", meaning: "소중히 여기다, 가치", example: "What my father values the most is <span class='substitutable'>his family</span>." },
+                { word: "village", meaning: "마을", example: "There is a small village in <span class='substitutable'>the country</span>." },
+                { word: "villager", meaning: "마을 사람", example: "The villagers wanted to build <span class='substitutable'>a community center</span> there." },
+                { word: "at last", meaning: "마침내, 결국", example: "After <span class='substitutable'>a long trip</span>, Liz is home at last." },
+                { word: "be allowed to", meaning: "~하는 것이 허용되다", example: "Reporters were allowed to <span class='substitutable'>ask questions</span> about the news." },
+                { word: "be full of", meaning: "~으로 가득 차다", example: "The gym is full of <span class='substitutable'>students</span>." },
+                { word: "break a rule", meaning: "규칙을 어기다", example: "Those who break a rule must be <span class='substitutable'>punished</span>." },
+                { word: "by tradition", meaning: "전통에 따라", example: "Koreans visit <span class='substitutable'>their relatives</span> on New Year's Day by tradition." },
+                { word: "in secret", meaning: "몰래, 비밀리에", example: "The boy slipped out of <span class='substitutable'>his room</span> in secret." },
+                { word: "in the middle of", meaning: "~의 가운데에", example: "There is a large park in the middle of <span class='substitutable'>the city</span>." },
+                { word: "make matters worse", meaning: "엎친 데 덮친 격으로", example: "Leo was late for school. To make matters worse, he left <span class='substitutable'>his report</span> at home." },
+                { word: "active", meaning: "활동 중인", example: "There are many active volcanoes in <span class='substitutable'>Japan</span>." },
+                { word: "crop", meaning: "농산물", example: "<span class='substitutable'>Rice</span> is the main crop of the country." },
+                { word: "destroy", meaning: "파괴하다", example: "<span class='substitutable'>The war</span> is bad because it destroys everything." },
+                { word: "earthquake", meaning: "지진", example: "The earthquake destroyed <span class='substitutable'>60 percent</span> of the houses in the city." },
+                { word: "effect", meaning: "영향, 결과", example: "The effect of <span class='substitutable'>physical exercise</span> on the brain is great." },
+                { word: "erupt", meaning: "분출하다", example: "When we arrived at <span class='substitutable'>the island</span>, the volcano started to erupt." },
+                { word: "prevent", meaning: "막다, 예방하다", example: "If you want to prevent <span class='substitutable'>car accidents</span>, do not use your phone." },
+                { word: "scenery", meaning: "경치", example: "She stopped her car to enjoy the <span class='substitutable'>beautiful</span> scenery." },
+                { word: "threaten", meaning: "위협하다", example: "The thief threatened the shopkeeper and stole <span class='substitutable'>cash</span>." },
+                { word: "volcano", meaning: "화산", example: "Volcanoes are major tourist attractions in <span class='substitutable'>the region</span>." }
+            ]
+        };
+
+        const CLASSES_CONFIG = {
+            'g1c1': { grade: 1, classNum: 1, title: '1학년 1반' },
+            'g1c2': { grade: 1, classNum: 2, title: '1학년 2반' },
+            'g2c1': { grade: 2, classNum: 1, title: '2학년 1반' },
+            'g2c2': { grade: 2, classNum: 2, title: '2학년 2반' },
+            'g3c1': { grade: 3, classNum: 1, title: '3학년 1반' },
+            'g3c2': { grade: 3, classNum: 2, title: '3학년 2반' }
+        };
+
+        let currentClassId = null;
+        let activePool = [];
+        let usedWords = [];
+        let clickedAlphabets = new Set();
+
+        function getStorageKey(classId) {
+            return `yeongam_vocab_${classId}`;
+        }
+
+        function loadClassState(classId) {
+            const stored = localStorage.getItem(getStorageKey(classId));
+            if (stored) {
+                try {
+                    const parsed = JSON.parse(stored);
+                    usedWords = parsed.usedWords || [];
+                    clickedAlphabets = new Set(parsed.clickedAlphabets || []);
+                } catch (e) {
+                    usedWords = [];
+                    clickedAlphabets = new Set();
+                }
+            } else {
+                usedWords = [];
+                clickedAlphabets = new Set();
+            }
+
+            const grade = CLASSES_CONFIG[classId].grade;
+            const masterList = VOCAB_DATA[grade] || [];
+            const usedWordNames = new Set(usedWords.map(item => item.word.toLowerCase()));
+            
+            activePool = masterList.filter(item => !usedWordNames.has(item.word.toLowerCase()));
+        }
+
+        function saveClassState() {
+            if (!currentClassId) return;
+            const dataToSave = {
+                usedWords: usedWords,
+                clickedAlphabets: Array.from(clickedAlphabets)
+            };
+            localStorage.setItem(getStorageKey(currentClassId), JSON.stringify(dataToSave));
+            updateHomeProgressBadges();
+        }
+
+        function updateHomeProgressBadges() {
+            Object.keys(CLASSES_CONFIG).forEach(classId => {
+                const badge = document.getElementById(`progress-${classId}`);
+                if (!badge) return;
+                
+                const stored = localStorage.getItem(getStorageKey(classId));
+                let clickedCount = 0;
+                if (stored) {
+                    try {
+                        const parsed = JSON.parse(stored);
+                        clickedCount = (parsed.clickedAlphabets || []).length;
+                    } catch (e) {}
+                }
+                badge.textContent = `${clickedCount}/26 완료`;
+            });
+        }
+
+        function enterClass(classId) {
+            currentClassId = classId;
+            const config = CLASSES_CONFIG[classId];
+            
+            loadClassState(classId);
+
+            document.getElementById('boardTitle').textContent = `${config.title} 하루한줄 영단어`;
+            document.getElementById('currentClassText').textContent = config.title;
+            document.getElementById('headerClassBadge').classList.remove('hidden');
+
+            document.getElementById('homeView').classList.add('hidden');
+            document.getElementById('gameView').classList.remove('hidden');
+
+            renderGrid();
+            updateUsedWordsDisplay();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function goHome() {
+            currentClassId = null;
+            document.getElementById('headerClassBadge').classList.add('hidden');
+            document.getElementById('gameView').classList.add('hidden');
+            document.getElementById('homeView').classList.remove('hidden');
+            updateHomeProgressBadges();
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('alphabetGrid');
+            grid.innerHTML = '';
+
+            for (let i = 65; i <= 90; i++) {
+                const letter = String.fromCharCode(i);
+                const card = document.createElement('div');
+                card.className = 'alphabet-card';
+                card.textContent = letter;
+
+                const isClicked = clickedAlphabets.has(letter);
+                const isExhausted = activePool.length === 0;
+
+                if (isClicked || isExhausted) {
+                    card.classList.add('disabled');
+                } else {
+                    card.addEventListener('click', () => handleCardClick(letter));
+                }
+
+                grid.appendChild(card);
+            }
+        }
+
+        function handleCardClick(letter) {
+            if (clickedAlphabets.has(letter) || activePool.length === 0) return;
+
+            // Fisher-Yates Shuffle algorithm
+            for (let i = activePool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [activePool[i], activePool[j]] = [activePool[j], activePool[i]];
+            }
+
+            const drawCount = Math.min(2, activePool.length);
+            const drawn = activePool.splice(0, drawCount);
+
+            usedWords.push(...drawn);
+            clickedAlphabets.add(letter);
+
+            saveClassState();
+            renderGrid();
+            updateUsedWordsDisplay();
+            showWordModal(letter, drawn);
+        }
+
+        function showWordModal(letter, words) {
+            document.getElementById('modalAlphabetTag').textContent = `Card Alphabet ${letter}`;
+
+            const card1 = document.getElementById('card1');
+            const card2 = document.getElementById('card2');
+
+            if (words[0]) {
+                document.getElementById('word1').textContent = words[0].word;
+                document.getElementById('meaning1').textContent = words[0].meaning;
+                document.getElementById('example1').innerHTML = words[0].example;
+                card1.style.display = 'flex';
+            } else {
+                card1.style.display = 'none';
+            }
+
+            if (words[1]) {
+                document.getElementById('word2').textContent = words[1].word;
+                document.getElementById('meaning2').textContent = words[1].meaning;
+                document.getElementById('example2').innerHTML = words[1].example;
+                card2.style.display = 'flex';
+            } else {
+                card2.style.display = 'none';
+            }
+
+            document.getElementById('wordModal').classList.remove('hidden');
+        }
+
+        function closeWordModal() {
+            document.getElementById('wordModal').classList.add('hidden');
+        }
+
+        function speakWord(elementId) {
+            const wordText = document.getElementById(elementId).textContent;
+            if (!wordText || wordText === 'Word') return;
+
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(wordText);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.85;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function updateUsedWordsDisplay() {
+            const countSpan = document.getElementById('usedWordCount');
+            const listContainer = document.getElementById('usedWordsList');
+
+            countSpan.textContent = usedWords.length;
+
+            if (usedWords.length === 0) {
+                listContainer.innerHTML = '<p class="text-slate-500 italic text-sm w-full py-2">아직 학습한 단어가 없습니다. 알파벳 카드를 눌러 공부를 시작하세요!</p>';
+                return;
+            }
+
+            listContainer.innerHTML = '';
+            const sorted = [...usedWords].sort((a, b) => a.word.localeCompare(b.word));
+
+            sorted.forEach(item => {
+                const tag = document.createElement('div');
+                tag.className = 'bg-slate-700/80 border border-slate-600/80 rounded-xl px-3 py-1.5 flex flex-col items-center justify-center shadow-sm hover:border-sky-500/50 transition';
+                tag.innerHTML = `
+                    <span class="text-sky-300 font-extrabold text-sm">${item.word}</span>
+                    <span class="text-xs text-slate-400 font-medium">${item.meaning}</span>
+                `;
+                listContainer.appendChild(tag);
+            });
+        }
+
+        function openResetModal() {
+            const config = CLASSES_CONFIG[currentClassId];
+            document.getElementById('confirmModalText').innerHTML = `
+                <strong class="text-amber-400">${config.title}</strong>의 모든 학습 기록을 초기화하시겠습니까?<br>
+                삭제된 데이터는 복구할 수 없습니다.
+            `;
+            document.getElementById('confirmModal').classList.remove('hidden');
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').classList.add('hidden');
+        }
+
+        function executeReset() {
+            if (!currentClassId) return;
+            localStorage.removeItem(getStorageKey(currentClassId));
+            loadClassState(currentClassId);
+            renderGrid();
+            updateUsedWordsDisplay();
+            closeConfirmModal();
+        }
+
+        // Initialization on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            updateHomeProgressBadges();
+        });
+    </script>
 </body>
 </html>
