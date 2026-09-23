@@ -218,9 +218,14 @@
                     <h2 id="boardTitle" class="text-xl md:text-2xl font-bold text-sky-400">3학년 1반 하루한줄 영단어</h2>
                 </div>
 
-                <button onclick="openResetModal()" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 px-4 py-2 rounded-xl text-xs font-bold transition">
-                    반 진행 상황 초기화
-                </button>
+                <div class="flex items-center gap-2">
+                    <button onclick="openVocabModal()" class="bg-indigo-600/80 hover:bg-indigo-500 text-white border border-indigo-400/30 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                        <span>⚙️</span> 남은 단어 수정/추가
+                    </button>
+                    <button onclick="openResetModal()" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 px-3.5 py-2 rounded-xl text-xs font-bold transition">
+                        반 진행 상황 초기화
+                    </button>
+                </div>
             </div>
 
             <!-- Main Interactive Jeopardy Board -->
@@ -311,7 +316,7 @@
         </div>
     </div>
 
-    <!-- ================= CUSTOM CONFIRMATION MODAL ================= -->
+    <!-- CUSTOM CONFIRMATION MODAL -->
     <div id="confirmModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md w-full shadow-2xl animate-pop text-center space-y-4">
             <div class="w-12 h-12 bg-rose-500/10 text-rose-400 rounded-full flex items-center justify-center mx-auto text-2xl">
@@ -325,66 +330,146 @@
                 <button onclick="closeConfirmModal()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold py-2.5 rounded-xl transition text-sm">
                     취소
                 </button>
-                <button onclick="executeReset()" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl transition text-sm">
+                <button onclick="executeReset()" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-bold py-2.5 rounded-xl transition text-sm shadow-lg">
                     초기화 실행
                 </button>
             </div>
         </div>
     </div>
 
+    <!-- VOCABULARY MANAGEMENT MODAL -->
+    <div id="vocabModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-slate-800 border-2 border-indigo-500/50 rounded-2xl p-6 md:p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl relative animate-pop space-y-6">
+            
+            <button onclick="closeVocabModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-2xl font-bold p-1">
+                &times;
+            </button>
+
+            <div class="text-center space-y-1 border-b border-slate-700 pb-4">
+                <span id="vocabModalClassTag" class="px-3 py-1 bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded-full text-xs font-extrabold">
+                    학급 단어장 관리
+                </span>
+                <h3 class="text-2xl font-black text-indigo-300">⚙️ 앞으로 학습할 남은 단어 관리</h3>
+                <p class="text-xs text-slate-400">이미 학습 완료된 단어는 보존되며, 앞으로 카드를 뽑을 때 나올 단어 목록만 변경됩니다.</p>
+            </div>
+
+            <!-- Form: Add New Word -->
+            <div class="bg-slate-900/90 rounded-xl p-5 border border-slate-700 space-y-4">
+                <h4 class="text-sm font-bold text-sky-400 flex items-center gap-1.5">
+                    <span>➕</span> 새 단어 추가하기
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1">영단어 (Word)</label>
+                        <input type="text" id="newWordInput" placeholder="예: achieve" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-sky-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1">뜻 (Meaning)</label>
+                        <input type="text" id="newMeaningInput" placeholder="예: 달성하다, 성취하다" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-sky-400">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">예문 (치환 강조할 단어/구문은 &lt;span class='substitutable'&gt;구문&lt;/span&gt; 감싸기)</label>
+                    <input type="text" id="newExampleInput" placeholder="예: You can achieve your <span class='substitutable'>goal</span> with effort." class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-sky-400">
+                </div>
+                <div class="flex justify-end">
+                    <button onclick="addNewWordToPool()" class="bg-sky-600 hover:bg-sky-500 text-white font-bold px-4 py-2 rounded-lg text-xs transition shadow">
+                        단어장에 추가
+                    </button>
+                </div>
+            </div>
+
+            <!-- Active Remaining Words List -->
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <h4 class="text-sm font-bold text-slate-200">
+                        📋 대기 중인 남은 단어 (<span id="remainingWordCount" class="text-indigo-400">0</span>개)
+                    </h4>
+                    <button onclick="resetVocabToDefault()" class="text-xs text-rose-400 hover:text-rose-300 underline font-medium">
+                        기본 학년 단어장으로 되돌리기
+                    </button>
+                </div>
+                
+                <div id="remainingVocabList" class="space-y-2 max-h-60 overflow-y-auto custom-scrollbar pr-1">
+                    <!-- Dynamic List of remaining words -->
+                </div>
+            </div>
+
+            <div class="pt-2 text-center border-t border-slate-700">
+                <button onclick="closeVocabModal()" class="w-full sm:w-auto bg-slate-700 hover:bg-slate-600 text-white font-bold py-2.5 px-8 rounded-xl transition text-sm">
+                    닫기 및 반영 완료
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // 학년별 기본 단어 데이터베이스
         const VOCAB_DATA = {
-            // Grade 1 Data
+            // 1학년 단어 목록
             1: [
-                { word: "activity", meaning: "활동", example: "What is your favorite <span class='substitutable'>after-school activity</span>?" },
-                { word: "borrow", meaning: "빌리다", example: "Can I borrow your <span class='substitutable'>English book</span> for a moment?" },
-                { word: "delicious", meaning: "맛있는", example: "My mother cooked <span class='substitutable'>spaghetti</span>, and it was delicious." },
-                { word: "exciting", meaning: "흥미진진한", example: "Watching <span class='substitutable'>the soccer game</span> was very exciting." },
-                { word: "favorite", meaning: "가장 좋아하는", example: "<span class='substitutable'>Blue</span> is my favorite color." },
-                { word: "introduce", meaning: "소개하다", example: "Let me introduce <span class='substitutable'>my best friend</span> to you." },
-                { word: "practice", meaning: "연습하다", example: "He practices <span class='substitutable'>playing the guitar</span> every afternoon." },
-                { word: "remember", meaning: "기억하다", example: "I always remember to <span class='substitutable'>turn off the lights</span>." },
-                { word: "special", meaning: "특별한", example: "Today is a special day for <span class='substitutable'>our family</span>." },
-                { word: "together", meaning: "함께", example: "We walked to <span class='substitutable'>the library</span> together." },
-                { word: "understand", meaning: "이해하다", example: "Do you understand <span class='substitutable'>this grammar rule</span>?" },
-                { word: "visit", meaning: "방문하다", example: "I will visit <span class='substitutable'>my grandparents</span> this weekend." },
-                { word: "weather", meaning: "날씨", example: "The weather is very sunny in <span class='substitutable'>Yeongam</span> today." },
-                { word: "worry", meaning: "걱정하다", example: "Don't worry about <span class='substitutable'>the test</span>." },
-                { word: "health", meaning: "건강", example: "Eating <span class='substitutable'>fresh vegetables</span> is good for your health." },
-                { word: "protect", meaning: "보호하다", example: "We should protect <span class='substitutable'>the environment</span>." },
-                { word: "habit", meaning: "습관", example: "Reading <span class='substitutable'>every night</span> is a good habit." },
-                { word: "join", meaning: "가입하다, 함께하다", example: "Would you like to join <span class='substitutable'>our sports club</span>?" },
-                { word: "language", meaning: "언어", example: "Learning <span class='substitutable'>a foreign language</span> is fun." },
-                { word: "famous", meaning: "유명한", example: "This restaurant is famous for <span class='substitutable'>its delicious bakery</span>." },
-                { word: "take a picture", meaning: "사진을 찍다", example: "We took a picture in front of <span class='substitutable'>the school hall</span>." },
-                { word: "look for", meaning: "~을 찾다", example: "She is looking for <span class='substitutable'>her lost pencil case</span>." },
-                { word: "make friends", meaning: "친구를 사귀다", example: "It is easy to make friends at <span class='substitutable'>summer camp</span>." }
+                { word: "hobby", meaning: "취미", example: "My hobby is <span class='substitutable'>playing soccer</span> on weekends." },
+                { word: "favorite", meaning: "가장 좋아하는", example: "My favorite subject in school is <span class='substitutable'>English</span>." },
+                { word: "practice", meaning: "연습하다", example: "I practice <span class='substitutable'>playing the guitar</span> every day." },
+                { word: "family", meaning: "가족", example: "I went to <span class='substitutable'>the park</span> with my family." },
+                { word: "healthy", meaning: "건강한", example: "Eating fresh fruits helps you stay <span class='substitutable'>healthy</span>." },
+                { word: "friendship", meaning: "우정", example: "Trust is very important in <span class='substitutable'>a strong friendship</span>." },
+                { word: "remember", meaning: "기억하다", example: "Please remember to bring your <span class='substitutable'>textbook</span> tomorrow." },
+                { word: "weekend", meaning: "주말", example: "We visited <span class='substitutable'>my grandparents</span> last weekend." },
+                { word: "curious", meaning: "호기심이 많은", example: "He is curious about <span class='substitutable'>outer space</span>." },
+                { word: "travel", meaning: "여행하다", example: "I want to travel to <span class='substitutable'>Jeju Island</span> this summer." },
+                { word: "season", meaning: "계절", example: "Autumn is my favorite <span class='substitutable'>season</span> because of the cool breeze." },
+                { word: "protect", meaning: "보호하다", example: "We should protect <span class='substitutable'>our environment</span> from pollution." }
             ],
 
-            // Grade 2 Data
+            // 2학년 단어 목록
             2: [
-                { word: "advice", meaning: "조언", example: "My teacher gave me helpful advice on <span class='substitutable'>my worries</span>." },
-                { word: "communicate", meaning: "소통하다", example: "People communicate with each other through <span class='substitutable'>smartphones</span>." },
-                { word: "culture", meaning: "문화", example: "I want to learn more about <span class='substitutable'>Korean traditional culture</span>." },
-                { word: "experience", meaning: "경험", example: "<span class='substitutable'>Volunteering at the park</span> was a great experience." },
-                { word: "improve", meaning: "향상시키다", example: "I practice every day to improve my <span class='substitutable'>speaking skills</span>." },
-                { word: "popular", meaning: "인기 있는", example: "This song is very popular among <span class='substitutable'>teenagers</span>." },
-                { word: "relationship", meaning: "관계", example: "Trust is important for <span class='substitutable'>good friendship</span>." },
-                { word: "traditional", meaning: "전통적인", example: "They wore traditional clothes during <span class='substitutable'>Chuseok</span>." },
-                { word: "environment", meaning: "환경", example: "Recycling trash helps save <span class='substitutable'>our planet</span>." },
-                { word: "express", meaning: "표현하다", example: "He expressed his feelings through <span class='substitutable'>his drawings</span>." },
-                { word: "succeed", meaning: "성공하다", example: "If you work hard, you will succeed in <span class='substitutable'>your career</span>." },
-                { word: "confidence", meaning: "자신감", example: "Practicing in front of a mirror gives you <span class='substitutable'>confidence</span>." },
                 { word: "creative", meaning: "창의적인", example: "She came up with a creative idea for <span class='substitutable'>the science project</span>." },
                 { word: "effort", meaning: "노력", example: "His team put a lot of effort into <span class='substitutable'>winning the match</span>." },
                 { word: "patience", meaning: "인내심", example: "Fishing requires a lot of <span class='substitutable'>patience</span>." },
                 { word: "focus on", meaning: "~에 집중하다", example: "Please focus on <span class='substitutable'>what the speaker says</span>." },
                 { word: "depend on", meaning: "~에 달려있다", example: "Our outdoor trip depends on <span class='substitutable'>the weather</span>." },
                 { word: "give up", meaning: "포기하다", example: "Never give up on <span class='substitutable'>your dream</span>." },
-                { word: "take care of", meaning: "~을 돌보다", example: "I helped my mom take care of <span class='substitutable'>my younger brother</span>." }
+                { word: "take care of", meaning: "~을 돌보다", example: "I helped my mom take care of <span class='substitutable'>my younger brother</span>." },
+                { word: "advantage", meaning: "장점", example: "Online learning has many advantages for <span class='substitutable'>busy students</span>." },
+                { word: "community", meaning: "공동체, 지역사회", example: "We built a clean environment in <span class='substitutable'>our community</span>." },
+                { word: "convenient", meaning: "편리한", example: "Living near a bus stop is very convenient for <span class='substitutable'>commuting</span>." },
+                { word: "discover", meaning: "발견하다", example: "Scientists discovered <span class='substitutable'>a new plant species</span> in the forest." },
+                { word: "encourage", meaning: "격려하다", example: "The coach encouraged the players after <span class='substitutable'>the match</span>." },
+                { word: "international", meaning: "국제적인", example: "They attended an international conference on <span class='substitutable'>climate change</span>." },
+                { word: "opportunity", meaning: "기회", example: "Studying abroad is a great opportunity to <span class='substitutable'>grow</span>." },
+                { word: "organize", meaning: "조직하다, 정리하다", example: "She organized <span class='substitutable'>a charity event</span> at school." },
+                { word: "participate", meaning: "참여하다", example: "Many students participated in <span class='substitutable'>the speech contest</span>." },
+                { word: "prepare", meaning: "준비하다", example: "We are preparing for <span class='substitutable'>the final exams</span>." },
+                { word: "recommend", meaning: "추천하다", example: "Can you recommend <span class='substitutable'>a good fantasy novel</span>?" },
+                { word: "solution", meaning: "해결책", example: "Finding a solution to <span class='substitutable'>traffic problems</span> takes time." },
+                { word: "technology", meaning: "기술", example: "Modern technology changed <span class='substitutable'>our daily lives</span> completely." },
+                { word: "valuable", meaning: "가치 있는", example: "Time spent with family is very valuable to <span class='substitutable'>me</span>." },
+                { word: "wisdom", meaning: "지혜", example: "Grandparents share their wisdom with <span class='substitutable'>younger generations</span>." },
+                { word: "attitude", meaning: "태도", example: "A positive attitude helps you overcome <span class='substitutable'>difficulties</span>." },
+                { word: "behavior", meaning: "행동", example: "His polite behavior impressed <span class='substitutable'>all teachers</span>." },
+                { word: "consider", meaning: "고려하다, 숙고하다", example: "Please consider <span class='substitutable'>other people's feelings</span>." },
+                { word: "determine", meaning: "결심하다", example: "She was determined to finish <span class='substitutable'>the marathon</span>." },
+                { word: "generous", meaning: "관대한, 넉넉한", example: "The man was generous to <span class='substitutable'>poor neighbors</span>." },
+                { word: "inspire", meaning: "영감을 주다", example: "Her passion inspired <span class='substitutable'>many young artists</span>." },
+                { word: "knowledge", meaning: "지식", example: "Reading books enriches your <span class='substitutable'>general knowledge</span>." },
+                { word: "mention", meaning: "언급하다", example: "He mentioned <span class='substitutable'>his plans</span> during the meeting." },
+                { word: "ordinary", meaning: "평범한", example: "It was just an ordinary day at <span class='substitutable'>school</span>." },
+                { word: "patient", meaning: "인내심 있는", example: "Be patient while waiting for <span class='substitutable'>the results</span>." },
+                { word: "realize", meaning: "깨닫다", example: "I suddenly realized <span class='substitutable'>my mistake</span>." },
+                { word: "support", meaning: "지지하다, 지원", example: "Parents always support <span class='substitutable'>their children's dreams</span>." },
+                { word: "talent", meaning: "재능", example: "She has an amazing talent for <span class='substitutable'>painting portraits</span>." },
+                { word: "unique", meaning: "독특한", example: "Each country has its unique <span class='substitutable'>food culture</span>." },
+                { word: "various", meaning: "다양한", example: "There are various ways to solve <span class='substitutable'>this puzzle</span>." },
+                { word: "wonder", meaning: "궁금해하다", example: "I wonder why <span class='substitutable'>the sky is blue</span>." },
+                { word: "achieve", meaning: "달성하다, 성취하다", example: "You can achieve your <span class='substitutable'>goal</span> with continuous effort." },
+                { word: "balance", meaning: "균형", example: "It is important to keep a balance between <span class='substitutable'>study and rest</span>." },
+                { word: "connect", meaning: "연결하다", example: "The new bridge connects <span class='substitutable'>the two islands</span>." },
+                { word: "difficult", meaning: "어려운", example: "Solving this math problem was <span class='substitutable'>quite difficult</span>." },
+                { word: "education", meaning: "교육", example: "Education plays a key role in <span class='substitutable'>our society</span>." }
             ],
 
-            // Grade 3 Data (Full provided dataset)
+            // 3학년 단어 목록
             3: [
                 { word: "arrest", meaning: "체포하다", example: "Why was <span class='substitutable'>the man</span> arrested last Wednesday?" },
                 { word: "celebrate", meaning: "기념하다, 축하하다", example: "A lot of people came out to the street and celebrated <span class='substitutable'>the New Year</span>." },
@@ -462,9 +547,25 @@
         let activePool = [];
         let usedWords = [];
         let clickedAlphabets = new Set();
+        let currentMasterList = [];
 
         function getStorageKey(classId) {
             return `yeongam_vocab_${classId}`;
+        }
+
+        function getCustomVocabKey(classId) {
+            return `yeongam_custom_master_${classId}`;
+        }
+
+        function getEffectiveMasterList(classId) {
+            const customStored = localStorage.getItem(getCustomVocabKey(classId));
+            if (customStored) {
+                try {
+                    return JSON.parse(customStored);
+                } catch (e) {}
+            }
+            const grade = CLASSES_CONFIG[classId].grade;
+            return [...(VOCAB_DATA[grade] || [])];
         }
 
         function loadClassState(classId) {
@@ -483,11 +584,11 @@
                 clickedAlphabets = new Set();
             }
 
-            const grade = CLASSES_CONFIG[classId].grade;
-            const masterList = VOCAB_DATA[grade] || [];
+            currentMasterList = getEffectiveMasterList(classId);
             const usedWordNames = new Set(usedWords.map(item => item.word.toLowerCase()));
             
-            activePool = masterList.filter(item => !usedWordNames.has(item.word.toLowerCase()));
+            // 학습 완료 단어를 제외한 남은 단어만 activePool로 지정
+            activePool = currentMasterList.filter(item => !usedWordNames.has(item.word.toLowerCase()));
         }
 
         function saveClassState() {
@@ -498,6 +599,111 @@
             };
             localStorage.setItem(getStorageKey(currentClassId), JSON.stringify(dataToSave));
             updateHomeProgressBadges();
+        }
+
+        function saveCustomMasterList() {
+            if (!currentClassId) return;
+            localStorage.setItem(getCustomVocabKey(currentClassId), JSON.stringify(currentMasterList));
+        }
+
+        function openVocabModal() {
+            if (!currentClassId) return;
+            const config = CLASSES_CONFIG[currentClassId];
+            document.getElementById('vocabModalClassTag').textContent = `${config.title} 남은 단어 관리`;
+            renderVocabManager();
+            document.getElementById('vocabModal').classList.remove('hidden');
+        }
+
+        function closeVocabModal() {
+            document.getElementById('vocabModal').classList.add('hidden');
+        }
+
+        function renderVocabManager() {
+            const listContainer = document.getElementById('remainingVocabList');
+            const countSpan = document.getElementById('remainingWordCount');
+            
+            const usedWordNames = new Set(usedWords.map(item => item.word.toLowerCase()));
+            const remainingWords = currentMasterList.filter(item => !usedWordNames.has(item.word.toLowerCase()));
+
+            countSpan.textContent = remainingWords.length;
+            listContainer.innerHTML = '';
+
+            if (remainingWords.length === 0) {
+                listContainer.innerHTML = '<p class="text-slate-500 text-xs italic py-4 text-center">대기 중인 남은 단어가 없습니다. 위에서 새 단어를 추가해보세요!</p>';
+                return;
+            }
+
+            remainingWords.forEach((item) => {
+                const row = document.createElement('div');
+                row.className = 'bg-slate-900/70 border border-slate-700/80 rounded-lg p-3 flex justify-between items-center gap-3 hover:border-slate-600 transition';
+                row.innerHTML = `
+                    <div class="flex-grow min-w-0">
+                        <div class="flex items-center gap-2">
+                            <span class="text-sky-300 font-extrabold text-sm">${item.word}</span>
+                            <span class="text-xs text-slate-400 font-medium truncate">${item.meaning}</span>
+                        </div>
+                        <p class="text-xs text-slate-500 truncate mt-0.5">${item.example.replace(/<[^>]*>?/gm, '')}</p>
+                    </div>
+                    <button onclick="removeRemainingWord('${item.word.replace(/'/g, "\\'")}')" class="text-slate-500 hover:text-rose-400 p-1 text-xs transition font-bold" title="남은 단어 목록에서 삭제">
+                        ❌
+                    </button>
+                `;
+                listContainer.appendChild(row);
+            });
+        }
+
+        function addNewWordToPool() {
+            const wordInput = document.getElementById('newWordInput');
+            const meaningInput = document.getElementById('newMeaningInput');
+            const exampleInput = document.getElementById('newExampleInput');
+
+            const word = wordInput.value.trim();
+            const meaning = meaningInput.value.trim();
+            let example = exampleInput.value.trim();
+
+            if (!word || !meaning) return;
+
+            if (!example) {
+                example = `This sentence features the word <span class='substitutable'>${word}</span>.`;
+            } else if (!example.includes('substitutable')) {
+                const regex = new RegExp(`(${word})`, 'gi');
+                if (regex.test(example)) {
+                    example = example.replace(regex, `<span class='substitutable'>$1</span>`);
+                }
+            }
+
+            const exists = currentMasterList.some(item => item.word.toLowerCase() === word.toLowerCase());
+            if (exists) {
+                wordInput.value = '';
+                meaningInput.value = '';
+                exampleInput.value = '';
+                return;
+            }
+
+            currentMasterList.push({ word, meaning, example });
+            saveCustomMasterList();
+            
+            loadClassState(currentClassId);
+
+            wordInput.value = '';
+            meaningInput.value = '';
+            exampleInput.value = '';
+
+            renderVocabManager();
+        }
+
+        function removeRemainingWord(targetWord) {
+            currentMasterList = currentMasterList.filter(item => item.word.toLowerCase() !== targetWord.toLowerCase());
+            saveCustomMasterList();
+            loadClassState(currentClassId);
+            renderVocabManager();
+        }
+
+        function resetVocabToDefault() {
+            if (!currentClassId) return;
+            localStorage.removeItem(getCustomVocabKey(currentClassId));
+            loadClassState(currentClassId);
+            renderVocabManager();
         }
 
         function updateHomeProgressBadges() {
@@ -554,9 +760,8 @@
                 card.textContent = letter;
 
                 const isClicked = clickedAlphabets.has(letter);
-                const isExhausted = activePool.length === 0;
 
-                if (isClicked || isExhausted) {
+                if (isClicked) {
                     card.classList.add('disabled');
                 } else {
                     card.addEventListener('click', () => handleCardClick(letter));
@@ -567,16 +772,31 @@
         }
 
         function handleCardClick(letter) {
-            if (clickedAlphabets.has(letter) || activePool.length === 0) return;
+            if (clickedAlphabets.has(letter)) return;
 
-            // Fisher-Yates Shuffle algorithm
-            for (let i = activePool.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [activePool[i], activePool[j]] = [activePool[j], activePool[i]];
+            const grade = CLASSES_CONFIG[currentClassId].grade;
+            const masterList = currentMasterList;
+            let drawn = [];
+
+            if (activePool.length >= 2) {
+                for (let i = activePool.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [activePool[i], activePool[j]] = [activePool[j], activePool[i]];
+                }
+                drawn = activePool.splice(0, 2);
+            } else if (activePool.length === 1) {
+                const lastUnused = activePool.pop();
+                drawn.push(lastUnused);
+
+                const candidates = masterList.filter(m => m.word.toLowerCase() !== lastUnused.word.toLowerCase());
+                const randomExtra = candidates[Math.floor(Math.random() * candidates.length)];
+                if (randomExtra) {
+                    drawn.push(randomExtra);
+                }
+            } else {
+                const shuffled = [...masterList].sort(() => Math.random() - 0.5);
+                drawn = shuffled.slice(0, 2);
             }
-
-            const drawCount = Math.min(2, activePool.length);
-            const drawn = activePool.splice(0, drawCount);
 
             usedWords.push(...drawn);
             clickedAlphabets.add(letter);
